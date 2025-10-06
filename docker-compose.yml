@@ -1,0 +1,12 @@
+version: "3.9"
+
+services:
+  shader-demo:
+    build: ./src/webgl-shader-demo
+    container_name: shader-demo
+    ports:
+      - "8080:80"
+    volumes:
+      - ./src/webgl-shader-demo:/srv
+    restart: unless-stopped
+
