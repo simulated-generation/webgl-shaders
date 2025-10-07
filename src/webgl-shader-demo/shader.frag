@@ -4,56 +4,45 @@ precision mediump float;
 in vec2 vPos;
 out vec4 fragColor;
 
-// Parameters controlling e^{(a*i*2π + b)*x}
-const float a = 0.2;   // imaginary frequency
-const float b = 0.3;  // real growth/decay
-const float scale = 2.0;  // view zoom (larger = zoom out)
+uniform sampler2D u_prev;
+uniform vec2 u_resolution;
+uniform float u_time;
 
-// Convert the complex exponential function
+const float a = 1.0;
+const float b = -0.1;
+const float scale = 2.0;
+const float decay = 0.95;
+const float PI = 3.1415926;
+
+// Convert complex exponential
 vec2 complexExp(vec2 z) {
-    // z = (b + i*omega) * x
-    // e^{z} = e^{Re(z)} * (cos(Im(z)) + i*sin(Im(z)))
     float ex = exp(z.x);
     return ex * vec2(cos(z.y), sin(z.y));
 }
 
 void main() {
-    // Map fragment coordinates from [-1,1] range
-    vec2 uv = vPos * scale;
+    // Correct for aspect ratio so that scaling is isotropic
+    float aspect = u_resolution.x / u_resolution.y;
 
-    // Compute the function value for this x (we'll use x = uv.x)
+    // Map coords to [-1,1] and scale isotropically
+    vec2 uv = vPos * vec2(scale * aspect, scale);
+
+    // Compute current f(x)
     float x = uv.x;
-    float y = uv.y;
+    vec2 f = complexExp(vec2(0.5, 0.25 * PI * u_time));
 
-    float thickness = 0.01;
-    // Compute f(x)
-    //vec2 f = complexExp(vec2(b * x, a * 2.0 * 3.1415926 * x));
-
-    // The screen coordinate represents the complex plane (Re = x, Im = y)
-    // We check how close the pixel’s y is to f(x).y, and how close its x to f(x).x.
-    // But we only want to draw the curve f(x) across visible x values.
-
-    vec2 xAxis = vec2(x,0.0);
-    float distXAxis = length(uv - xAxis);
-    vec2 yAxis = vec2(0.0,y);
-    float distYAxis = length(uv - yAxis);
-
-    float axis = smoothstep(thickness, 0.0, distXAxis);
-    axis      += smoothstep(thickness, 0.0, distYAxis);
-
-    vec2 f = vec2(x,exp(x));
-
-    // Distance from pixel to curve in complex plane
+    // Distance from this pixel to function graph
     float dist = length(uv - f);
+    float thickness = 0.03;
+    float curve = smoothstep(thickness, 0.0, dist);
 
-    // Thickness of the curve
+    // Read previous frame color (feedback)
+    vec2 texcoord = (vPos * 0.5 + 0.5);
+    vec4 prev = texture(u_prev, texcoord);
 
-    // Draw white where the pixel is close to f(x)
-    float intensity = smoothstep(thickness, 0.0, dist);
+    // Combine: fade old pixels, add new
+    vec4 color = prev * decay + vec4(vec3(curve), 1.0);
 
-    // Optional: faint grid or background tone
-    vec3 color = vec3(intensity+axis);
-
-    fragColor = vec4(color, 1.0);
+    fragColor = color;
 }
 
