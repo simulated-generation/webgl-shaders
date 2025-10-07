@@ -20,7 +20,7 @@ export function updateSimulation(dt) {
     points = [];
     for (let i = 0; i < N; i++) {
           const x = (i / N) * 4.0 - 2.0; // from -2 to +2
-          const [xr, yi] = complexExp(b * x, a * TWO_PI * (x + 0.2 * Math.sin(t)));
+          const [xr, yi] = complexExp(b * x, a * TWO_PI * (x + 0.2 * t));
           points.push([xr, yi]);
         }
 }
