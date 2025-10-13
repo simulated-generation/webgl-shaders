@@ -1,6 +1,7 @@
 import * as Renderer from "./core/renderer.js";
 import { initSimulation, updateSimulation, getPoints } from "./core/simulation.js";
 import { updateTime } from "./core/time.js";
+import { connectBroker } from "./core/websocket-client.js";
 
 async function main(){
   const canvas = document.getElementById("glcanvas");
@@ -10,6 +11,22 @@ async function main(){
     fetch("./shaders/quad.vert").then(r=>r.text()),
     fetch("./shaders/quad.frag").then(r=>r.text()),
   ]);
+
+  const id = new URLSearchParams(window.location.search).get("id") || "test-room";
+  const broker = connectBroker({
+    id,
+    // url: "ws://localhost:8000/ws?id=" + encodeURIComponent(id), // optional override for dev
+    onMessage: (msg) => {
+      // For now, just log OSC-like messages in the browser console
+      console.log("[OSC message]", msg);
+      // Later: map msg.path / msg.args to shader uniforms
+    },
+    onOpen: () => console.log("[broker] open"),
+    onClose: () => console.log("[broker] closed"),
+    log: true
+  });
+  window._broker = broker;
+
 
   Renderer.initRenderer(canvas, pointVS, pointFS, quadVS, quadFS);
   initSimulation();

@@ -1,0 +1,30 @@
+{
+  "name": "virtualctl",
+  "version": "1.0.0",
+  "description": "A small osc controller for the hyperreality environment",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "build": "parcel build src/index.html",
+    "start": "parcel serve src/index.html --host 0.0.0.0 --port 9999",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "osc"
+  ],
+  "author": "Simulated Generation",
+  "license": "MIT",
+  "dependencies": {
+    "osc-js": "^2.4.1"
+  },
+  "devDependencies": {
+    "@parcel/packager-raw-url": "^2.13.0",
+    "@parcel/transformer-webmanifest": "^2.13.0",
+    "buffer": "^6.0.3",
+    "events": "^3.3.0",
+    "parcel": "^2.13.0",
+    "process": "^0.11.10",
+    "serve": "^14.2.4"
+  }
+}

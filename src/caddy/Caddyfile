@@ -6,3 +6,7 @@ shaders.simulated-generation.xyz {
 broker.simulated-generation.xyz {
     reverse_proxy broker:8000
 }
+
+control.simulated-generation.xyz {
+    reverse_proxy controller:80
+}

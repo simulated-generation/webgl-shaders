@@ -9,3 +9,26 @@ services:
       - ./src/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
       - ./src/webgl-shader:/srv/webgl-shaders:ro
     restart: unless-stopped
+
+  broker:
+    build:
+      context: ./src/broker
+    container_name: broker
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8000
+      - VERBOSE=${VERBOSE:-false}
+      - LOG_DIR=/logs
+    ports:
+      - "${BROKER_PORT:-8000}:8000"
+    volumes:
+      - ./volumes/broker/logs:/logs
+    restart: unless-stopped
+
+  controller:
+    build:
+      context: ./src/controller
+    container_name: controller
+    restart: unless-stopped
+    expose:
+      - "80"
