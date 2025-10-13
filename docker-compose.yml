@@ -1,12 +1,11 @@
-version: "3.9"
-
 services:
-  shader-demo:
-    build: ./src/webgl-shader
-    container_name: webgl-shader
+  caddy:
+    image: caddy:2.10.2
+    container_name: caddy
     ports:
-      - "8080:80"
+      - "80:80"
+      - "443:443"
     volumes:
-      - ./src/webgl-shader:/srv
+      - ./src/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./src/webgl-shader:/srv/webgl-shaders:ro
     restart: unless-stopped
-

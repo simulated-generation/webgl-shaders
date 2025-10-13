@@ -1,0 +1,8 @@
+shaders.simulated-generation.xyz {
+    root * /srv/webgl-shaders
+    file_server
+}
+
+broker.simulated-generation.xyz {
+    reverse_proxy broker:8000
+}
