@@ -1,4 +1,7 @@
 // src/webgl-shader-demo/websocket-client.js
+import { setControl } from './state.js';
+
+
 export function connectBroker({ id, url, onMessage, onOpen, onClose, log = true }) {
 
   const wsUrl = url || (() => {
@@ -24,9 +27,15 @@ export function connectBroker({ id, url, onMessage, onOpen, onClose, log = true 
 
   ws.onmessage = (event) => {
     try {
-      const data = JSON.parse(event.data);
-      if (onMessage) onMessage(data);
-      else console.log("[broker message]", data);
+      const msg = JSON.parse(event.data);
+      if (msg.type === "osc" && msg.path && Array.isArray(msg.args)) {
+        const arg = msg.args[0];
+        if (arg && (arg.t === "f" || arg.t === "i")) {
+          setControl(msg.path, parseFloat(arg.v));
+        }
+      }
+      if (onMessage) onMessage(msg);
+      else console.log("[broker message]", msg);
     } catch (err) {
       console.error("Invalid JSON from broker:", event.data);
     }

@@ -2,6 +2,8 @@ import * as Renderer from "./core/renderer.js";
 import { initSimulation, updateSimulation, getPoints } from "./core/simulation.js";
 import { updateTime } from "./core/time.js";
 import { connectBroker } from "./core/websocket-client.js";
+import { updateUniforms } from './core/state.js';
+
 
 async function main(){
   const canvas = document.getElementById("glcanvas");
@@ -12,7 +14,7 @@ async function main(){
     fetch("./shaders/quad.frag").then(r=>r.text()),
   ]);
 
-  const id = new URLSearchParams(window.location.search).get("id") || "test-room";
+  const id = new URLSearchParams(window.location.search).get("id") || "default";
   const broker = connectBroker({
     id,
     // url: "ws://localhost:8000/ws?id=" + encodeURIComponent(id), // optional override for dev

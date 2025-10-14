@@ -4,6 +4,7 @@
 // - points pass: additive draw of points into dst
 // - copy dst -> screen
 import { createShaderProgram } from "./shader.js";
+import { updateUniforms } from './state.js';
 
 let gl = null;
 
@@ -189,6 +190,8 @@ export function drawFrame(points, time, options = {}) {
   gl.uniform1f(uni.point.u_aspect, aspect);
   gl.uniform1f(uni.point.u_pointSize, pointSize * (window.devicePixelRatio || 1));
   gl.uniform1f(uni.point.u_time, time);
+
+  updateUniforms(gl, pointProgram);
 
   // additive blending
   gl.enable(gl.BLEND);
