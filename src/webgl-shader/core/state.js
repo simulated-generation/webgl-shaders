@@ -7,11 +7,17 @@ const uniforms = new Map(); // uniformName -> WebGLUniformLocation
  * Called when a new OSC control value arrives.
  */
 export function setControl(path, value) {
-  console.log("setting control value");
-  console.log(path);
+  //console.log("setting control value");
+  //console.log(path);
   controls.set(path, value);
 }
 
+export function getControl(path) {
+  //console.log("getting control value");
+  //console.log(path);
+  //console.log(controls.get(path));
+  return controls.get(path);
+}
 /**
  * Called in the render loop to update all uniforms dynamically.
  */
@@ -41,10 +47,11 @@ export function updateUniforms(gl, program) {
  * Convert OSC paths like "/foo/bar" -> "uFooBar"
  */
 export function pathToUniform(path) {
-  return "u" + path
-    .split("/")
-    .filter(Boolean)
-    .map(s => s.charAt(0).toUpperCase() + s.slice(1))
-    .join("");
+  return (
+    "u_" +
+    path
+      .split("/")
+      .filter(Boolean)
+      .join("_")
+  );
 }
-

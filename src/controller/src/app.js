@@ -5,7 +5,7 @@ function createKnobs(num) {
   container.innerHTML = "";
   for (let i = 1; i <= num; i++) {
     const knob = document.createElement("webaudio-knob");
-    knob.id = `knob${i}`;
+    knob.id = `knob${String(i).padStart(3, "0")}`;
     knob.min = 0;
     knob.max = 1;
     knob.step = 0.001;
@@ -13,7 +13,7 @@ function createKnobs(num) {
     knob.setAttribute("height", "46");
     knob.colors =  '#81a1c1;#4c566a;#444';
     knob.addEventListener("input", e => {
-      const path = `/virtualctl/K${String(i).padStart(2, "0")}`;
+      const path = `/virtualctl/K${String(i).padStart(3, "0")}`;
       sendMessage(path, parseFloat(e.target.value));
     });
     container.appendChild(knob);

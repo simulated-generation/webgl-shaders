@@ -7,6 +7,8 @@ uniform vec2 u_resolution;
 uniform float u_decay;
 void main(){
   vec4 prev = texture(u_prev, vUV);
-  fragColor = prev * u_decay;
+  fragColor = (prev * u_decay);
+//vec4 color = vec4(vUV.x, vUV.y, 0.0,1.0);
+//fragColor = 0.3*color + (prev * u_decay);
 }
 

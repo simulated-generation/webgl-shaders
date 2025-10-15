@@ -1,3 +1,5 @@
+import { getControl } from './state.js';
+
 let points = [];
 const N = 400;
 let t = 0;
@@ -5,6 +7,10 @@ let t = 0;
 const a = 1.0;
 const b = -0.05;
 const TWO_PI = Math.PI * 2;
+
+function hash11(x) {
+  return (Math.sin(x * 127.1) * 43758.5453) % 1;
+}
 
 function complexExp(re, im) {
     const e = Math.exp(re);
@@ -20,7 +26,7 @@ export function updateSimulation(dt) {
     points = [];
     for (let i = 0; i < N; i++) {
           const x = (2.0 + Math.sin(t)) * (i / N) * 4.0 - 4.0; // from -2 to +2
-          const [xr, yi] = complexExp(b * x, a * TWO_PI * (x + 0.2 * t));
+          const [xr, yi] = complexExp(3.0 * getControl('/virtualctl/K004') * b * x, (1.0 + getControl('/virtualctl/K005') * hash11(i)) * a * TWO_PI * (x + 0.2 * t));
           points.push([xr, yi]);
         }
 }

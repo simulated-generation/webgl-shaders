@@ -2,7 +2,7 @@ import * as Renderer from "./core/renderer.js";
 import { initSimulation, updateSimulation, getPoints } from "./core/simulation.js";
 import { updateTime } from "./core/time.js";
 import { connectBroker } from "./core/websocket-client.js";
-import { updateUniforms } from './core/state.js';
+import { getControl } from './core/state.js';
 
 
 async function main(){
@@ -40,7 +40,7 @@ async function main(){
     for(let i=0;i<steps;i++) updateSimulation(dt);
     const points = getPoints(); // Float32Array or array of floats
     // pass options: decay and point size
-    Renderer.drawFrame(points, now, { decay: 0.95, pointSize: 4.0, scale: 2.0 });
+    Renderer.drawFrame(points, now, { decay: 0.95+0.05*getControl('/virtualctl/K003'), pointSize: getControl('/virtualctl/K002') * 30.0, scale: 2.0 });
     requestAnimationFrame(loop);
   }
   requestAnimationFrame(loop);
