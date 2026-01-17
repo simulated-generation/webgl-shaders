@@ -10,3 +10,13 @@ broker.simulated-generation.xyz {
 control.simulated-generation.xyz {
     reverse_proxy controller:80
 }
+
+radio.simulated-generation.xyz {
+    root * /srv/radio-live
+    file_server
+
+    # Allows the web player (hls.js) to fetch segments from this domain
+    header {
+        Access-Control-Allow-Origin *
+    }
+}

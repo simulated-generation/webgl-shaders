@@ -7,7 +7,10 @@ services:
       - "443:443"
     volumes:
       - ./src/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
-      - ./src/webgl-shader:/srv/webgl-shaders:ro
+      - ./src/webgl-shader:/srv/webgl-shaders
+      - /var/www/html/live:/srv/radio-live
+      - ./volumes/caddy/data:/data
+      - ./volumes/caddy/config:/config
     restart: unless-stopped
 
   broker:
@@ -30,5 +33,3 @@ services:
       context: ./src/controller
     container_name: controller
     restart: unless-stopped
-    expose:
-      - "80"
