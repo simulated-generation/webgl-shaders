@@ -1,0 +1,145 @@
+:root {
+    --bg-color: #050505;
+    --accent-blue: #00d2ff;
+    --accent-cyan: #3aedff;
+    --text-main: #ffffff;
+    --vortex-size: 320px;
+    --vortex-speed-idle: 120s;
+    --vortex-speed-active: 20s;
+    --glow-strength: 20px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.app-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    height: 80vh;
+    width: 100%;
+}
+
+/* --- Title Styling --- */
+.branding h1 {
+    font-size: 1.2rem;
+    letter-spacing: 0.5rem;
+    font-weight: 300;
+    background: linear-gradient(to right, var(--accent-blue), #fff, var(--accent-cyan));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 var(--glow-strength) rgba(0, 210, 255, 0.3);
+}
+
+.glow-line {
+    height: 1px;
+    width: 40px;
+    background: var(--accent-cyan);
+    margin: 10px auto;
+    box-shadow: 0 0 10px var(--accent-cyan);
+}
+
+/* --- The Vortex --- */
+.vortex-stage {
+    position: relative;
+    width: var(--vortex-size);
+    height: var(--vortex-size);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.vortex {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    /* Replace 'vortex.png' path here, or use this cool gradient fallback */
+    background: conic-gradient(from 0deg, transparent, var(--accent-blue), transparent, var(--accent-cyan), transparent);
+    opacity: 0.6;
+    mask-image: radial-gradient(circle, transparent 30%, black 100%);
+    -webkit-mask-image: radial-gradient(circle, transparent 30%, black 100%);
+    animation: spin var(--vortex-speed-idle) linear infinite;
+    transition: animation-duration 2s ease-in-out;
+}
+
+body.playing .vortex {
+    animation-duration: var(--vortex-speed-active);
+    opacity: 1;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* --- Play Button --- */
+#play-btn {
+    z-index: 10;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(5px);
+    transition: all 0.3s ease;
+}
+
+#play-btn:hover {
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 20px rgba(58, 237, 255, 0.2);
+    transform: scale(1.05);
+}
+
+#play-btn svg {
+    width: 32px;
+    height: 32px;
+}
+
+/* --- Status Text --- */
+.status-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+#status-text {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2rem;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.indicator {
+    width: 4px;
+    height: 4px;
+    background: gray;
+    border-radius: 50%;
+    transition: background 0.5s ease;
+}
+
+body.playing .indicator {
+    background: var(--accent-cyan);
+    box-shadow: 0 0 8px var(--accent-cyan);
+}
