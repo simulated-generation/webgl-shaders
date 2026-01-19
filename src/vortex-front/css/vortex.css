@@ -1,0 +1,98 @@
+:root {
+  --bg: #050b10;
+  --vortex-slow: 60s;
+  --vortex-fast: 8s;
+  --vortex-paused-color: #4a6a77;
+  --vortex-playing-color: #3bbcff;
+}
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: white;
+  font-family: sans-serif;
+}
+
+.vortex-container {
+  position: relative;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+/* Vortex visual */
+.vortex {
+  width: 60vmin;
+  height: 60vmin;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at center,
+      rgba(255,255,255,0.15) 0%,
+      transparent 60%),
+    conic-gradient(
+      from 0deg,
+      transparent,
+      currentColor,
+      transparent
+    );
+
+  animation: spin var(--vortex-slow) linear infinite;
+  filter: blur(0.5px);
+}
+
+/* States */
+.vortex-container.paused {
+  color: var(--vortex-paused-color);
+}
+
+.vortex-container.playing {
+  color: var(--vortex-playing-color);
+}
+
+.vortex-container.playing .vortex {
+  animation-duration: var(--vortex-fast);
+}
+
+/* Play button */
+#playButton {
+  position: absolute;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0,0,0,0.6);
+  color: white;
+  font-size: 2rem;
+  cursor: pointer;
+  z-index: 2;
+}
+
+#playButton:hover {
+  background: rgba(0,0,0,0.8);
+}
+
+/* Title */
+.title {
+  position: absolute;
+  border: none;
+  font-size: 1rem;
+  z-index: 2;
+}
+
+/* Audio controls */
+audio {
+  position: fixed;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 600px;
+}
+  
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+

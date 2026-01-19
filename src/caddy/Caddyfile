@@ -11,7 +11,7 @@ control.simulated-generation.xyz {
     reverse_proxy controller:80
 }
 
-radio.simulated-generation.xyz {
+enter-the-vortex.now {
     root * /srv/radio-live
     file_server
 
