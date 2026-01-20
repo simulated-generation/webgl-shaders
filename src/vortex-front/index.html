@@ -1,42 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vortex Radio</title>
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#050505">
+    <meta charset="utf-8" />
+    <title>Enter the Vortex</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0b1c24" />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="stylesheet" href="css/vortex.css" />
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 </head>
 <body>
 
-    <main class="app-container">
-        <header class="branding">
-            <h1>VORTEX RADIO</h1>
-            <div class="glow-line"></div>
+    <main class="vortex-container paused">
+        <header class="title">
+            Enter the Vortex
         </header>
 
-        <section class="vortex-stage">
-            <div class="vortex" id="vortex-visual"></div>
-            
-            <button id="play-btn" aria-label="Toggle Playback">
-                <svg id="play-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                </svg>
-                <svg id="pause-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="display:none;">
-                    <rect x="6" y="4" width="4" height="16"></rect>
-                    <rect x="14" y="4" width="4" height="16"></rect>
-                </svg>
-            </button>
-        </section>
+        <div class="vortex-stage">
+            <div class="vortex"></div>
+            <button id="playButton" aria-label="Play">▶</button>
+        </div>
 
         <footer class="status-area">
-            <span id="status-text">OFFLINE</span>
-            <div class="indicator"></div>
+            <span id="status-text">PAUSED</span>
         </footer>
     </main>
 
-    <audio id="audio" preload="none"></audio>
-    <script src="js/app.js"></script>
+    <audio id="audio" preload="none" style="display:none;"></audio>
+
+    <script src="js/vortex.js"></script>
 </body>
 </html>

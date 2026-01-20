@@ -1,98 +1,114 @@
 :root {
-  --bg: #050b10;
-  --vortex-slow: 60s;
-  --vortex-fast: 8s;
-  --vortex-paused-color: #4a6a77;
-  --vortex-playing-color: #3bbcff;
+    --bg-dark: #050505;
+    --vortex-cyan: #00f2ff;
+    --vortex-blue: #0066ff;
+    --text-color: #ffffff;
+    --vortex-size: 300px;
 }
 
-html, body {
-  margin: 0;
-  height: 100%;
-  background: var(--bg);
-  color: white;
-  font-family: sans-serif;
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--bg-dark);
+    color: var(--text-color);
+    font-family: 'Inter', sans-serif;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
 }
 
 .vortex-container {
-  position: relative;
-  height: 100%;
-  display: grid;
-  place-items: center;
-  overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-around;
+    height: 70vh;
+    width: 100%;
 }
 
-/* Vortex visual */
+/* --- Title --- */
+.title {
+    font-size: 1.5rem;
+    letter-spacing: 0.4rem;
+    text-transform: uppercase;
+    font-weight: 200;
+    background: linear-gradient(to right, var(--vortex-blue), #fff, var(--vortex-cyan));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    opacity: 0.8;
+}
+
+/* --- The Vortex Stage --- */
+.vortex-stage {
+    position: relative;
+    width: var(--vortex-size);
+    height: var(--vortex-size);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 .vortex {
-  width: 60vmin;
-  height: 60vmin;
-  border-radius: 50%;
-  background:
-    radial-gradient(circle at center,
-      rgba(255,255,255,0.15) 0%,
-      transparent 60%),
-    conic-gradient(
-      from 0deg,
-      transparent,
-      currentColor,
-      transparent
-    );
-
-  animation: spin var(--vortex-slow) linear infinite;
-  filter: blur(0.5px);
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    /* Creative CSS Vortex Fallback */
+    background: conic-gradient(from 0deg, transparent, var(--vortex-blue), transparent, var(--vortex-cyan), transparent);
+    mask-image: radial-gradient(circle, transparent 35%, black 100%);
+    -webkit-mask-image: radial-gradient(circle, transparent 35%, black 100%);
+    
+    animation: spin 120s linear infinite;
+    transition: animation-duration 1.5s ease-in-out, opacity 1s;
+    opacity: 0.3;
 }
 
-/* States */
-.vortex-container.paused {
-  color: var(--vortex-paused-color);
-}
-
-.vortex-container.playing {
-  color: var(--vortex-playing-color);
-}
-
+/* State Changes */
 .vortex-container.playing .vortex {
-  animation-duration: var(--vortex-fast);
+    animation-duration: 20s;
+    opacity: 0.9;
 }
 
-/* Play button */
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* --- Play Button --- */
 #playButton {
-  position: absolute;
-  width: 96px;
-  height: 96px;
-  border-radius: 50%;
-  border: none;
-  background: rgba(0,0,0,0.6);
-  color: white;
-  font-size: 2rem;
-  cursor: pointer;
-  z-index: 2;
+    z-index: 10;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
 }
 
 #playButton:hover {
-  background: rgba(0,0,0,0.8);
+    border-color: var(--vortex-cyan);
+    box-shadow: 0 0 15px rgba(0, 242, 255, 0.3);
 }
 
-/* Title */
-.title {
-  position: absolute;
-  border: none;
-  font-size: 1rem;
-  z-index: 2;
+/* --- Discreet Status --- */
+.status-area {
+    font-size: 0.7rem;
+    letter-spacing: 0.3rem;
+    opacity: 0.4;
+    transition: opacity 0.5s;
 }
 
-/* Audio controls */
-audio {
-  position: fixed;
-  bottom: 1rem;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 90%;
-  max-width: 600px;
+.vortex-container.playing .status-area {
+    opacity: 0.8;
+    color: var(--vortex-cyan);
 }
-  
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
-}
-
