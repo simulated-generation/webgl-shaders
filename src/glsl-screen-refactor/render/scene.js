@@ -77,6 +77,11 @@ export class SceneRenderer {
   }
 
   draw(contentTex, w, h, viewMat) {
+    //console.log("[scene.draw] got viewMat?", !!viewMat,
+	        //"cam translation slots", viewMat ? [viewMat[12], viewMat[13], viewMat[14]] : null);
+
+    if (!viewMat) console.warn("[scene] missing viewMat, using identity");
+    //console.warn("[scene] has a defined viewMat.");
     const gl = this.gl;
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.viewport(0, 0, w, h);
@@ -94,7 +99,7 @@ export class SceneRenderer {
     const model = mat4Translate(0.0, 0.0, -2.0);
 
     const pv = mat4Mul(proj, viewMat);
-    const mvp = mat4Mul(proj, model);
+    const mvp = mat4Mul(pv, model);
 
     gl.uniformMatrix4fv(this.u.u_mvp, false, mvp);
 

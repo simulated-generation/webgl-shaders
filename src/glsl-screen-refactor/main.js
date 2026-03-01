@@ -5,6 +5,8 @@ import { ContentRenderer } from "./render/content.js";
 import { SceneRenderer } from "./render/scene.js";
 import { KeyboardCamera } from "./render/camera.js";
 
+let _dbgT = 0;
+
 async function loadText(path) {
   const r = await fetch(path);
   if (!r.ok) throw new Error(`fetch ${path} failed: ${r.status}`);
@@ -60,6 +62,16 @@ async function main() {
 
     // camera uses real frame delta
     camera.update(delta);
+    _dbgT += delta;
+    if (_dbgT > 0.5) {
+      _dbgT = 0;
+      const p = camera.pos;
+      console.log("[cam]",
+        "pos", p.x.toFixed(2), p.y.toFixed(2), p.z.toFixed(2),
+        "yaw", camera.yaw.toFixed(2),
+        "pitch", camera.pitch.toFixed(2)
+      );
+    }
 
     for (let i = 0; i < steps; i++) sim.step(dt);
 

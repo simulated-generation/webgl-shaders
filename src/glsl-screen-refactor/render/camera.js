@@ -80,40 +80,39 @@ export class KeyboardCamera {
     }
   }
 
-  // Build a view matrix (column-major) for WebGL: look from pos with yaw/pitch.
   viewMatrix() {
-    // We’ll construct it from basis vectors (right, up, forward).
     const cy = Math.cos(this.yaw),  sy = Math.sin(this.yaw);
     const cp = Math.cos(this.pitch), sp = Math.sin(this.pitch);
-
-    // Forward direction
+  
+    // Forward direction (where camera looks), world space
     const fx = -sy * cp;
     const fy =  sp;
     const fz = -cy * cp;
-
-    // Right (yaw-only)
+  
+    // Right (yaw-only keeps strafe stable)
     const rx =  cy;
     const ry =  0;
     const rz = -sy;
-
-    // Up = forward x right (ensure orthonormal)
-    // u = r x f (depending on convention). We'll compute u = cross(r, f).
+  
+    // Up = cross(right, forward)
     const ux = ry * fz - rz * fy;
     const uy = rz * fx - rx * fz;
     const uz = rx * fy - ry * fx;
-
+  
     const px = this.pos.x, py = this.pos.y, pz = this.pos.z;
-
+  
     // Column-major view matrix:
-    // [ r.x  u.x  -f.x  0
-    //   r.y  u.y  -f.y  0
-    //   r.z  u.z  -f.z  0
+    // [ rx  ux  -fx  0
+    //   ry  uy  -fy  0
+    //   rz  uz  -fz  0
     //  -dot(r,p) -dot(u,p) dot(f,p) 1 ]
     const m = new Float32Array(16);
-    m[0] = rx;  m[4] = ux;  m[8]  = -fx;  m[12] = -(rx*px + ry*py + rz*pz);
-    m[1] = ry;  m[5] = uy;  m[9]  = -fy;  m[13] = -(ux*px + uy*py + uz*pz);
-    m[2] = rz;  m[6] = uz;  m[10] = -fz;  m[14] =  (fx*px + fy*py + fz*pz);
-    m[3] = 0;   m[7] = 0;   m[11] = 0;    m[15] = 1;
+  
+    m[0]  = rx;  m[4]  = ux;  m[8]  = -fx;  m[12] = -(rx*px + ry*py + rz*pz);
+    m[1]  = ry;  m[5]  = uy;  m[9]  = -fy;  m[13] = -(ux*px + uy*py + uz*pz);
+    m[2]  = rz;  m[6]  = uz;  m[10] = -fz;  m[14] =  (fx*px + fy*py + fz*pz);
+    m[3]  = 0;   m[7]  = 0;   m[11] = 0;    m[15] = 1;
+  
     return m;
   }
 }
