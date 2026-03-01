@@ -17,6 +17,7 @@ export class KeyboardCamera {
 
     this.keys = new Set();
     window.addEventListener("keydown", (e) => {
+      console.log("[camera] keydown:", e.key, "code:", e.code);
       // prevent backspace navigating back
       if (e.key === "Backspace") e.preventDefault();
       this.keys.add(e.key);
