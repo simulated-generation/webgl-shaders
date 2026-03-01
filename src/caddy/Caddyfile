@@ -3,6 +3,11 @@ shaders.simulated-generation.xyz {
     file_server
 }
 
+shaders001.simulated-generation.xyz {
+    root * /srv/glsl-screen-refactor
+    file_server
+}
+
 broker.simulated-generation.xyz {
     reverse_proxy broker:8000
 }
@@ -10,3 +15,4 @@ broker.simulated-generation.xyz {
 control.simulated-generation.xyz {
     reverse_proxy controller:80
 }
+

@@ -8,6 +8,7 @@ services:
     volumes:
       - ./src/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
       - ./src/webgl-shader:/srv/webgl-shaders
+      - ./src/glsl-screen-refactor:/srv/glsl-screen-refactor:ro
       - ./volumes/caddy/data:/data
       - ./volumes/caddy/config:/config
     restart: unless-stopped
