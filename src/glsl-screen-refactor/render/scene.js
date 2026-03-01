@@ -6,18 +6,19 @@ function mat4Identity() {
   return m;
 }
 
+// column-major multiply: out = a * b
 function mat4Mul(a, b) {
-  const o = new Float32Array(16);
-  for (let r=0;r<4;r++){
-    for (let c=0;c<4;c++){
-      o[c + r*4] =
-        a[0 + r*4]*b[c + 0*4] +
-        a[1 + r*4]*b[c + 1*4] +
-        a[2 + r*4]*b[c + 2*4] +
-        a[3 + r*4]*b[c + 3*4];
+  const out = new Float32Array(16);
+  for (let c = 0; c < 4; c++) {
+    for (let r = 0; r < 4; r++) {
+      out[c*4 + r] =
+        a[0*4 + r] * b[c*4 + 0] +
+        a[1*4 + r] * b[c*4 + 1] +
+        a[2*4 + r] * b[c*4 + 2] +
+        a[3*4 + r] * b[c*4 + 3];
     }
   }
-  return o;
+  return out;
 }
 
 function mat4Perspective(fovy, aspect, near, far) {
@@ -32,8 +33,10 @@ function mat4Perspective(fovy, aspect, near, far) {
   return m;
 }
 
-function mat4Translate(z) {
+function mat4Translate(x, y, z) {
   const m = mat4Identity();
+  m[12] = x;
+  m[13] = y;
   m[14] = z;
   return m;
 }
@@ -88,7 +91,7 @@ export class SceneRenderer {
     gl.bindVertexArray(this.vao);
 
     const proj = mat4Perspective(Math.PI/3, w/h, 0.1, 100.0);
-    const model = mat4Translate(-2.0);
+    const model = mat4Translate(0.0, 0.0, -2.0);
     const mvp = mat4Mul(proj, model);
     gl.uniformMatrix4fv(this.u.u_mvp, false, mvp);
 
