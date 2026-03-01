@@ -76,7 +76,7 @@ export class SceneRenderer {
     };
   }
 
-  draw(contentTex, w, h) {
+  draw(contentTex, w, h, viewMat) {
     const gl = this.gl;
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.viewport(0, 0, w, h);
@@ -92,7 +92,10 @@ export class SceneRenderer {
 
     const proj = mat4Perspective(Math.PI/3, w/h, 0.1, 100.0);
     const model = mat4Translate(0.0, 0.0, -2.0);
+
+    const pv = mat4Mul(proj, viewMat);
     const mvp = mat4Mul(proj, model);
+
     gl.uniformMatrix4fv(this.u.u_mvp, false, mvp);
 
     gl.activeTexture(gl.TEXTURE0);

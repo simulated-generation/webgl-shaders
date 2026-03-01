@@ -3,6 +3,7 @@ import { connectBroker } from "./core/websocket-client.js";
 import { Simulation } from "./sim/sim.js";
 import { ContentRenderer } from "./render/content.js";
 import { SceneRenderer } from "./render/scene.js";
+import { KeyboardCamera } from "./render/camera.js";
 
 async function loadText(path) {
   const r = await fetch(path);
@@ -42,6 +43,8 @@ async function main() {
   const content = new ContentRenderer(gl, contentVS, contentFS, sim.N);
   const scene = new SceneRenderer(gl, sceneVS, sceneFS);
 
+  const camera = new KeyboardCamera();
+
   function handleResize() {
     const { w, h } = resizeCanvasToDisplaySize(canvas);
     content.resize(w, h);
@@ -51,13 +54,21 @@ async function main() {
 
   function loop() {
     const { steps, dt, now } = updateTime();
+
+    // Update camera with real time (dt is fixed sim dt; good enough)
+    for (let i = 0; i < steps; i++) {
+      sim.step(dt);
+      camera.update(dt);
+    }
+
+
     for (let i = 0; i < steps; i++) sim.step(dt);
 
     const { w, h } = resizeCanvasToDisplaySize(canvas);
 
     content.uploadSim(sim.payload());
     content.render(now, w, h);
-    scene.draw(content.texture(), w, h);
+    scene.draw(content.texture(), w, h, camera.viewMatrix());
 
     requestAnimationFrame(loop);
   }
