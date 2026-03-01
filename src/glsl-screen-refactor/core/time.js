@@ -13,5 +13,5 @@ export function updateTime() {
   accumulator += delta;
   const steps = Math.floor(accumulator / FIXED_DT);
   accumulator -= steps * FIXED_DT;
-  return { steps, dt: FIXED_DT, now };
+  return { steps, dt: FIXED_DT, now, delta };
 }

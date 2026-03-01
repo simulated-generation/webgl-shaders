@@ -53,14 +53,13 @@ async function main() {
   handleResize();
 
   function loop() {
-    const { steps, dt, now } = updateTime();
+    const { steps, dt, now, delta } = updateTime();
 
-    // Update camera with real time (dt is fixed sim dt; good enough)
-    for (let i = 0; i < steps; i++) {
-      sim.step(dt);
-      camera.update(dt);
-    }
+    // sim uses fixed steps
+    for (let i = 0; i < steps; i++) sim.step(dt);
 
+    // camera uses real frame delta
+    camera.update(delta);
 
     for (let i = 0; i < steps; i++) sim.step(dt);
 
