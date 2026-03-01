@@ -8,9 +8,26 @@ import { KeyboardCamera } from "./render/camera.js";
 let _dbgT = 0;
 
 async function loadText(path) {
-  const r = await fetch(path);
+  // cache-bust so you never wonder what version you’re running
+  const url = `${path}?v=${Date.now()}`;
+
+  const r = await fetch(url, { cache: "no-store" });
+  const text = await r.text();
+
+  // short hash so you can compare quickly across reloads
+  let hash = 2166136261 >>> 0; // FNV-1a
+  for (let i = 0; i < text.length; i++) {
+    hash ^= text.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  const h = (hash >>> 0).toString(16).padStart(8, "0");
+
+  console.log(`[shader] ${path} -> ${r.status} len=${text.length} hash=${h}`);
+  console.log(`[shader] ${path} head:\n${text.slice(0, 200)}`);
+  console.log(`[shader] ${path} tail:\n${text.slice(Math.max(0, text.length - 200))}`);
+
   if (!r.ok) throw new Error(`fetch ${path} failed: ${r.status}`);
-  return r.text();
+  return text;
 }
 
 function resizeCanvasToDisplaySize(canvas) {

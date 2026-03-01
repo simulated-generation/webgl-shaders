@@ -4,10 +4,14 @@ export function createProgram(gl, vsSource, fsSource) {
     gl.shaderSource(s, src);
     gl.compileShader(s);
     if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
-      throw new Error(gl.getShaderInfoLog(s));
+      const log = gl.getShaderInfoLog(s);
+      console.error("Shader compile failed:", log);
+      console.error("--- source ---\n" + src);
+      throw new Error(log);
     }
     return s;
   }
+
   const vs = compile(gl.VERTEX_SHADER, vsSource);
   const fs = compile(gl.FRAGMENT_SHADER, fsSource);
   const p = gl.createProgram();
@@ -15,7 +19,9 @@ export function createProgram(gl, vsSource, fsSource) {
   gl.attachShader(p, fs);
   gl.linkProgram(p);
   if (!gl.getProgramParameter(p, gl.LINK_STATUS)) {
-    throw new Error(gl.getProgramInfoLog(p));
+    const log = gl.getProgramInfoLog(p);
+    console.error("Program link failed:", log);
+    throw new Error(log);
   }
   return p;
 }
