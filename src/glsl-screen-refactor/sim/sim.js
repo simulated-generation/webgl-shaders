@@ -34,8 +34,8 @@ export class Simulation {
     const out = this.data;
 
     // controls (safe defaults)
-    const k4 = getControl("/virtualctl/K004", 0.0);
-    const k5 = getControl("/virtualctl/K005", 0.0);
+    const k4 = getControl("/virtualctl/K004", 0.5);
+    const k5 = getControl("/virtualctl/K005", 0.5);
 
     const a = 1.0;
     const b = -0.05;
