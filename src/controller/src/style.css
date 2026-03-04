@@ -11,13 +11,8 @@ body {
   overflow: hidden;
 }
 
-.knobs {
-  display: grid;
-  grid-template-rows: repeat(16, 46px);
-  justify-items: center;
-  grid-auto-flow: column;
-  column-gap: 4px;
-  row-gap: 0px;
+.app {
+  width: 100%;
 }
 
 .menu{
@@ -28,23 +23,57 @@ body {
   flex-direction: row;
   flex-wrap: nowrap;
   justify-content: space-between;
+  align-items: center;
+  gap: 8px;
 }
 
-#hostaddr{
- text-align: right;
- color: #2e3440;
- transition: all 0.2s ease-out;
- background-color: #81a1c1;
- border: none;
- width: 20vw;
+.layoutnav{
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
-#hostaddr:focus{
- background-color: #4c566a;
- color: #81a1c1;
- width: 65vw;
- font-size: 2.5rem;
- outline: none;
+
+#layoutTitle{
+  color: #81a1c1;
+  font-size: 0.95rem;
+  min-width: 10ch;
+  text-align: center;
 }
+
+#prevLayout, #nextLayout, #reloadbutton{
+  color: #2e3440;
+  background-color: #81a1c1;
+  border: none;
+  padding: 10px 12px;
+}
+
+#reloadbutton{
+  width: 20vw;
+}
+
+/* Generic render target for all layouts */
+.controls {
+  width: 100%;
+}
+
+/* Layout: 128 knobs (grid like you had) */
+.controls.knob-grid {
+  display: grid;
+  grid-template-rows: repeat(16, 46px);
+  justify-items: center;
+  grid-auto-flow: column;
+  column-gap: 4px;
+  row-gap: 0px;
+}
+
+/* Layout: horizontal sliders */
+.controls.slider-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 8px;
+}
+
 #reloadbutton{
  width: 20vw;
  color: #2e3440;

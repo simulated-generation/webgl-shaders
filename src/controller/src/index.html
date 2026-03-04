@@ -10,31 +10,22 @@
 </head>
 <body>
   <div class="app">
-    <!-- Generate a 4x5 grid of knobs -->
     <div class="menu">
+      <div class="layoutnav">
+        <button id="prevLayout" aria-label="Previous layout">◀</button>
+        <div id="layoutTitle">…</div>
+        <button id="nextLayout" aria-label="Next layout">▶</button>
+      </div>
+
       <button id="reloadbutton" onclick="reload()">RELOAD</button>
-      <input type="text" id="hostaddr" name="hostaddr" value="192.168.8.123" required minlength="4" size="10" />
-    </div>
-    <div class="knobs">
     </div>
 
-<!--    <div class="faders">
-      <webaudio-slider id="fader01" direction="vert" colors="#81a1c1;#4c566a;#444" width="30" height="146"></webaudio-slider>
-      <webaudio-slider id="fader02" direction="vert" colors="#81a1c1;#4c566a;#444" width="30" height="146"></webaudio-slider>
-      <webaudio-slider id="fader03" direction="vert" colors="#81a1c1;#4c566a;#444" width="30" height="146"></webaudio-slider>
-      <webaudio-slider id="fader04" direction="vert" colors="#81a1c1;#4c566a;#444" width="30" height="146"></webaudio-slider>
-      <webaudio-slider id="fader05" direction="vert" colors="#81a1c1;#4c566a;#444" width="30" height="146"></webaudio-slider>
-      <webaudio-slider id="fader06" direction="vert" colors="#81a1c1;#4c566a;#444" width="30" height="146"></webaudio-slider>
-      <webaudio-slider id="fader07" direction="vert" colors="#81a1c1;#4c566a;#444" width="30" height="146"></webaudio-slider>
-      <webaudio-slider id="fader08" direction="vert" colors="#81a1c1;#4c566a;#444" width="30" height="146"></webaudio-slider>
-    </div>
--->
-
+    <!-- This becomes the single render target for *any* layout -->
+    <div class="controls"></div>
   </div>
 
   <script>
     function reload() {
-      console.log("RELOADING");
       window.location.reload();
     }
   </script>

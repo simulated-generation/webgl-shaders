@@ -1,41 +1,110 @@
 import { connectToBroker, sendMessage } from "../lib/ws-client.js";
+import { layouts } from "./layouts/index.js";
 
-function createKnobs(num) {
-  const container = document.querySelector(".knobs");
+function el(tag) {
+  return document.createElement(tag);
+}
+
+function renderLayout(layout) {
+  const container = document.querySelector(".controls");
   container.innerHTML = "";
-  for (let i = 1; i <= num; i++) {
-    const knob = document.createElement("webaudio-knob");
-    knob.id = `knob${String(i).padStart(3, "0")}`;
-    knob.min = 0;
-    knob.max = 1;
-    knob.step = 0.001;
-    knob.setAttribute("width", "46");
-    knob.setAttribute("height", "46");
-    knob.colors =  '#81a1c1;#4c566a;#444';
-    knob.addEventListener("input", e => {
-      const path = `/virtualctl/K${String(i).padStart(3, "0")}`;
-      sendMessage(path, parseFloat(e.target.value));
-    });
-    container.appendChild(knob);
+  container.className = `controls ${layout.containerClass || ""}`.trim();
+
+  for (const c of layout.controls) {
+    if (c.type === "knob") {
+      const k = el("webaudio-knob");
+      k.id = c.id;
+      k.min = c.min;
+      k.max = c.max;
+      k.step = c.step;
+      k.setAttribute("width", String(c.width));
+      k.setAttribute("height", String(c.height));
+      if (c.colors) k.colors = c.colors;
+
+      k.addEventListener("input", (e) => {
+        sendMessage(c.oscPath, parseFloat(e.target.value));
+      });
+
+      container.appendChild(k);
+      continue;
+    }
+
+    if (c.type === "slider") {
+      const s = el("webaudio-slider");
+      s.id = c.id;
+      s.min = c.min;
+      s.max = c.max;
+      s.step = c.step;
+      s.setAttribute("direction", c.direction || "horiz");
+      s.setAttribute("width", String(c.width));
+      s.setAttribute("height", String(c.height));
+      if (c.colors) s.colors = c.colors;
+
+      s.addEventListener("input", (e) => {
+        sendMessage(c.oscPath, parseFloat(e.target.value));
+      });
+
+      container.appendChild(s);
+      continue;
+    }
+
+    console.warn("Unknown control type:", c);
   }
+}
+
+function clampLayoutIndex(i) {
+  const n = layouts.length;
+  return ((i % n) + n) % n;
+}
+
+function setLayoutIndex(i) {
+  const idx = clampLayoutIndex(i);
+  localStorage.setItem("virtualctl.layout", String(idx));
+  const layout = layouts[idx];
+  document.getElementById("layoutTitle").textContent = layout.title || layout.id;
+  renderLayout(layout);
+}
+
+function getInitialLayoutIndex() {
+  const url = new URL(location.href);
+  const q = url.searchParams.get("layout");
+  if (q != null) {
+    const n = Number(q);
+    if (!Number.isNaN(n)) return clampLayoutIndex(n);
+  }
+  const saved = localStorage.getItem("virtualctl.layout");
+  if (saved != null) {
+    const n = Number(saved);
+    if (!Number.isNaN(n)) return clampLayoutIndex(n);
+  }
+  return 0;
 }
 
 window.addEventListener("load", () => {
   const id = new URLSearchParams(location.search).get("id") || "default";
   connectToBroker(id);
-  createKnobs(128);
+
+  const idx = getInitialLayoutIndex();
+  setLayoutIndex(idx);
+
+  document.getElementById("prevLayout").addEventListener("click", () => {
+    const cur = Number(localStorage.getItem("virtualctl.layout") || "0");
+    setLayoutIndex(cur - 1);
+  });
+
+  document.getElementById("nextLayout").addEventListener("click", () => {
+    const cur = Number(localStorage.getItem("virtualctl.layout") || "0");
+    setLayoutIndex(cur + 1);
+  });
+
   registerSW();
 });
 
-
-//// Register the service worker for PWA
 async function registerSW() {
-  console.log("Registering");
-  console.log(navigator);
-  if ('serviceWorker' in navigator) {
+  if ("serviceWorker" in navigator) {
     try {
-      await navigator.serviceWorker.register(new URL('./sw.js', import.meta.url));
-    } catch(e) {
+      await navigator.serviceWorker.register(new URL("./sw.js", import.meta.url));
+    } catch (e) {
       console.log("Service Worker registration failed:", e);
     }
   }

@@ -8,16 +8,16 @@ uniform vec2  u_resolution;
 uniform float u_time;
 
 // Controls (from OSC paths like "/zeroctl/F11")
-uniform float u_virtualctl_K011;
-uniform float u_virtualctl_K012;
-uniform float u_virtualctl_K013;
-uniform float u_virtualctl_K014;
-uniform float u_virtualctl_K015;
-uniform float u_virtualctl_K016;
-uniform float u_virtualctl_K017;
-uniform float u_virtualctl_K018;
-uniform float u_virtualctl_K019;
-uniform float u_virtualctl_K021;
+uniform float u_virtualctl_F001;
+uniform float u_virtualctl_F002;
+uniform float u_virtualctl_F003;
+uniform float u_virtualctl_F004;
+uniform float u_virtualctl_F005;
+uniform float u_virtualctl_F006;
+uniform float u_virtualctl_F007;
+uniform float u_virtualctl_F008;
+uniform float u_virtualctl_F009;
+uniform float u_virtualctl_F010;
 
 // Previous frame from ping-pong
 uniform sampler2D u_prev;
@@ -56,16 +56,16 @@ float courbeExp(float x) {
 }
 
 void main() {
-  float F11 = u_virtualctl_K011;
-  float F12 = u_virtualctl_K012;
-  float F13 = u_virtualctl_K013;
-  float F14 = u_virtualctl_K014;
-  float F15 = u_virtualctl_K015;
-  float F16 = u_virtualctl_K016;
-  float F17 = u_virtualctl_K017;
-  float F18 = u_virtualctl_K018;
-  float F19 = u_virtualctl_K019;
-  float F21 = u_virtualctl_K021;
+  float F11 = u_virtualctl_F001;
+  float F12 = u_virtualctl_F002;
+  float F13 = u_virtualctl_F003;
+  float F14 = u_virtualctl_F004;
+  float F15 = u_virtualctl_F005;
+  float F16 = u_virtualctl_F006;
+  float F17 = u_virtualctl_F007;
+  float F18 = u_virtualctl_F008;
+  float F19 = u_virtualctl_F009;
+  float F21 = u_virtualctl_F010;
 
   // In this framework you already have v_uv = 0..1
   vec2 uv = v_uv;
