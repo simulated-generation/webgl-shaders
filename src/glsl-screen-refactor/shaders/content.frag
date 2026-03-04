@@ -7,72 +7,126 @@ out vec4 fragColor;
 uniform vec2  u_resolution;
 uniform float u_time;
 
-uniform sampler2D u_prev;      // previous content frame (ping-pong)
-uniform sampler2D u_pointsTex; // 1xN RGBA32F sim data
-uniform int u_pointCount;
+// Controls (from OSC paths like "/zeroctl/F11")
+uniform float u_virtualctl_K011;
+uniform float u_virtualctl_K012;
+uniform float u_virtualctl_K013;
+uniform float u_virtualctl_K014;
+uniform float u_virtualctl_K015;
+uniform float u_virtualctl_K016;
+uniform float u_virtualctl_K017;
+uniform float u_virtualctl_K018;
+uniform float u_virtualctl_K019;
+uniform float u_virtualctl_K021;
 
-// Controller (OSC path "/virtualctl/K002" -> uniform "u_virtualctl_K002")
-uniform float u_virtualctl_K002;
+// Previous frame from ping-pong
+uniform sampler2D u_prev;
 
-// Decode one sim point (xr, yi, xParam, iNorm)
-vec4 simPoint(int i) {
-  float u = (float(i) + 0.5) / float(u_pointCount);
-  return texture(u_pointsTex, vec2(u, 0.5));
+const float PI = 3.1415926535897932384626433;
+const float DEFAULT_RANDOM_FROM_FLOAT_PARAM = 502000.0;
+const float NB_CELLULES = 100.0;
+
+float randomFromFloat(float seed, float param) {
+  return fract(sin(seed) * param);
 }
 
-// Cheap grid lines in UV
-float grid(vec2 uv, float cells) {
-  vec2 g = abs(fract(uv * cells) - 0.5);
-  float line = min(g.x, g.y);
-  return 1.0 - smoothstep(0.0, 0.02, line);
+float randomFF(float seed) {
+  return randomFromFloat(seed, DEFAULT_RANDOM_FROM_FLOAT_PARAM);
 }
 
-// Map sim-space (roughly around [-something..something]) into UV 0..1.
-// Tune this scale to match your sim range.
-vec2 simToUV(vec2 p) {
-  // "scale" controls how much of sim-space fits on screen.
-  float scale = 2.2;
-  return 0.5 + 0.5 * (p / scale);
+float rand(float seed) {
+  return randomFromFloat(seed, DEFAULT_RANDOM_FROM_FLOAT_PARAM);
+}
+
+float noise(float seed) {
+  float i = floor(seed);  // integer
+  float f = fract(seed);
+  return mix(rand(i), rand(i + 1.0), smoothstep(0.0, 1.0, f));
+}
+
+mat2 rotate2d(float theta) {
+  float c = cos(theta);
+  float s = sin(theta);
+  return mat2(c, -s,
+              s,  c);
+}
+
+float courbeExp(float x) {
+  return (1.0 - abs(x - 1.0) * abs(x - 1.0) * abs(x - 1.0));
 }
 
 void main() {
+  float F11 = u_virtualctl_K011;
+  float F12 = u_virtualctl_K012;
+  float F13 = u_virtualctl_K013;
+  float F14 = u_virtualctl_K014;
+  float F15 = u_virtualctl_K015;
+  float F16 = u_virtualctl_K016;
+  float F17 = u_virtualctl_K017;
+  float F18 = u_virtualctl_K018;
+  float F19 = u_virtualctl_K019;
+  float F21 = u_virtualctl_K021;
+
+  // In this framework you already have v_uv = 0..1
   vec2 uv = v_uv;
 
-  // --- 1) animated UV debug background ---
-  float g1 = grid(uv + 0.02*sin(u_time*0.7), 10.0);
-  float g2 = grid(uv, 2.0) * 0.5;
-  vec3 bg = vec3(0.05) + vec3(0.15, 0.10, 0.20) * g2 + vec3(0.10) * g1;
+  float dispX = F15 * F15 * F15 * F15;
+  float dispY = F16 * F16 * F16 * F16;
 
-  // --- 2) draw the sim curve as a glow field ---
-  // Use K002 to control point glow size/intensity.
-  float k = clamp(u_virtualctl_K002, 0.0, 1.0);
-  float radius = mix(0.020, 0.004, k);    // higher k -> tighter points
-  float gain   = mix(0.4,  2.0,  k);      // higher k -> brighter
+  vec4 prevColor = texture(u_prev, uv - vec2(dispX, dispY));
 
-  float glow = 0.0;
+  vec2 cell = floor(NB_CELLULES * uv);
 
-  // Sample a subset of points for speed: change STEP to 1 for full detail.
-  const int STEP = 3;
-  for (int i = 0; i < 4000; i += STEP) {          // compile-time upper bound
-    if (i >= u_pointCount) break;                 // actual count
-    vec4 p = simPoint(i);
-
-    vec2 puv = simToUV(p.xy);
-    float d = length(uv - puv);
-
-    // Additive gaussian-ish glow
-    glow += exp(- (d*d) / (radius*radius)) * (0.4 + 0.6 * p.w);
+  float saturation = 0.0;
+  vec3 voisins = vec3(0.0);
+  for (float i = 0.0; i < 4.0; i += 1.0) {
+    for (float j = 0.0; j < 4.0; j += 1.0) {
+      voisins += texture(u_prev, vec2(0.125 + 0.25 * i, 0.125 + 0.25 * j)).rgb;
+    }
   }
+  voisins /= 16.0;
+  saturation = length(voisins);
 
-  vec3 curve = vec3(0.9, 0.6, 0.2) * glow * gain;
+  float cs = 1.0 / NB_CELLULES;
 
-  // --- 3) simple feedback trail ---
-  vec3 prev = texture(u_prev, uv).rgb;
-  float decay = 0.965;           // lower = shorter trails
-  vec3 outc = prev * decay + bg * 0.15 + curve;
+  vec4 prevColorN  = texture(u_prev, uv + vec2(0.0,  cs));
+  vec4 prevColorNW = texture(u_prev, uv + vec2(-cs, cs));
+  vec4 prevColorNE = texture(u_prev, uv + vec2( cs, cs));
+  vec4 prevColorS  = texture(u_prev, uv + vec2(0.0, -cs));
+  vec4 prevColorSW = texture(u_prev, uv + vec2(-cs, -cs));
+  vec4 prevColorSE = texture(u_prev, uv + vec2( cs, -cs));
+  vec4 prevColorW  = texture(u_prev, uv + vec2(-cs, 0.0));
+  vec4 prevColorE  = texture(u_prev, uv + vec2( cs, 0.0));
 
-  // Clamp so it doesn't blow out forever
-  outc = clamp(outc, 0.0, 1.0);
+  float point = step(
+    courbeExp(F19),
+    randomFF(randomFF(cell.x) + randomFF(cell.y) * floor(u_time))
+  );
 
-  fragColor = vec4(outc, 1.0);
+  vec4 pointVoisinEN = mix(prevColorE, prevColorN, 0.5);
+  vec4 pointVoisinWS = mix(prevColorW, prevColorS, 0.5);
+  vec4 pointVoisinWN = mix(prevColorW, prevColorN, 0.5);
+  vec4 pointVoisinES = mix(prevColorE, prevColorS, 0.5);
+
+  float composanteR = (prevColorE.r  + prevColorS.r  + prevColorSE.r + prevColorSW.r) / 4.0;
+  float composanteG = (prevColorN.g  + prevColorNE.g + prevColorE.g  + prevColorSW.g) / 4.0;
+  float composanteB = (prevColorNW.b + prevColorNE.b + prevColorE.b  + prevColorS.b ) / 4.0;
+
+  vec4 pointBinaire = vec4(composanteR, composanteG, composanteB, 1.0);
+
+  vec3 color = vec3(F11, F12, F13);
+
+  vec4 finalColor =
+      vec4((1.0 + F14 / 10.0) * prevColor.xyz + color * point, 1.0)
+    + 0.06 * noise(u_time) * (pointVoisinEN + pointVoisinWS + pointVoisinWN + pointVoisinES);
+
+  finalColor = vec4(step(0.1, length(finalColor.rgb)) * finalColor.rgb, 1.0);
+
+  float sstepSaturation = smoothstep(1.5, 1.74, saturation);
+
+  vec3 normalizedV = normalize(finalColor.rgb);
+  vec3 diagonal = normalize(vec3(1.0, 1.0, 1.0));
+  float alignment = dot(normalizedV, diagonal);
+
+  fragColor = vec4((1.0 - sstepSaturation) * finalColor.rgb - 2.0 * (alignment) * pointBinaire.rgb, 1.0);
 }
