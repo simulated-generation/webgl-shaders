@@ -8,17 +8,40 @@
   --controls-h: calc(var(--u) * 3);
   --row-h: calc(var(--u) * 1);
   --row-gap: calc(var(--u) * 0.65);
+
+  --bg: #fff;
+  --fg: #000;
+  --thumb-outer: #fff;
+  --thumb-ring: #000;
+  --thumb-center: #fff;
 }
 
-* { box-sizing: border-box; }
-html, body { height: 100%; }
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
 
 body {
   margin: 0;
-  background: #fff;
-  color: #000;
+  background: var(--bg);
+  color: var(--fg);
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   overscroll-behavior: none;
+  transition:
+    background 120ms linear,
+    color 120ms linear;
+}
+
+body.dark {
+  --bg: #000;
+  --fg: #fff;
+  --thumb-outer: #000;
+  --thumb-ring: #fff;
+  --thumb-center: #000;
 }
 
 .app {
@@ -44,24 +67,37 @@ body {
   align-items: center;
 }
 
+.top-actions {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 0.25);
+}
+
 .btn {
   appearance: none;
   -webkit-tap-highlight-color: transparent;
-  background: #fff;
-  border: var(--line) solid #000;
+  background: var(--bg);
+  border: var(--line) solid var(--fg);
   border-radius: 999px;
   padding: 0;
   display: inline-grid;
   place-items: center;
   touch-action: manipulation;
   cursor: pointer;
+  transition:
+    background 120ms linear,
+    border-color 120ms linear,
+    transform 90ms ease-out;
 }
 
-.btn:active { transform: scale(0.98); }
+.btn:active {
+  transform: scale(0.98);
+}
 
 .btn:focus-visible,
 input[type="range"]:focus-visible {
-  outline: 2px solid #000;
+  outline: 2px solid var(--fg);
   outline-offset: 2px;
 }
 
@@ -74,15 +110,14 @@ input[type="range"]:focus-visible {
 .btn.small {
   width: calc(var(--u) * 1.15);
   height: calc(var(--u) * 1.15);
-  justify-self: end;
 }
 
-.btn.is-recording {
-  background: #000;
+.btn.is-active {
+  background: var(--fg);
 }
 
-.btn.is-recording svg * {
-  stroke: #fff;
+.btn.is-active svg * {
+  stroke: var(--bg);
 }
 
 .btn svg {
@@ -92,7 +127,7 @@ input[type="range"]:focus-visible {
 }
 
 .btn svg * {
-  stroke: #000;
+  stroke: var(--fg);
   stroke-width: var(--line);
   fill: none;
   stroke-linecap: round;
@@ -121,24 +156,20 @@ input[type="range"] {
   appearance: none;
   touch-action: pan-y;
   --thumb-scale: 1;
-  --thumb-outer: #fff;
-  --thumb-ring: #000;
-  --thumb-center: #fff;
 }
 
 input[type="range"]::-webkit-slider-runnable-track {
   height: var(--track-h);
-  background: #000;
+  background: var(--fg);
   border-radius: 999px;
 }
-
 
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   width: var(--thumb);
   height: var(--thumb);
   border-radius: 50%;
-  border: var(--line) solid #000;
+  border: var(--line) solid var(--fg);
   background:
     radial-gradient(circle,
       var(--thumb-center) 0 38%,
@@ -148,14 +179,14 @@ input[type="range"]::-webkit-slider-thumb {
   margin-top: calc((var(--track-h) - var(--thumb)) / 2);
   transform: scale(var(--thumb-scale));
   transition:
-  transition:
     transform 110ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    background 90ms linear;
+    background 90ms linear,
+    border-color 120ms linear;
 }
 
 input[type="range"]::-moz-range-track {
   height: var(--track-h);
-  background: #000;
+  background: var(--fg);
   border: none;
   border-radius: 999px;
 }
@@ -164,7 +195,7 @@ input[type="range"]::-moz-range-thumb {
   width: var(--thumb);
   height: var(--thumb);
   border-radius: 50%;
-  border: var(--line) solid #000;
+  border: var(--line) solid var(--fg);
   background:
     radial-gradient(circle,
       var(--thumb-center) 0 38%,
@@ -173,19 +204,24 @@ input[type="range"]::-moz-range-thumb {
     );
   transform: scale(var(--thumb-scale));
   transition:
-    transform 90ms ease-out,
-    background 90ms ease-out;
+    transform 110ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    background 90ms linear,
+    border-color 120ms linear;
 }
 
 input[type="range"].is-active {
-  --thumb-scale: 1.2;
-  --thumb-outer: #000;
-  --thumb-ring: #000;
-  --thumb-center: #fff;
+  --thumb-scale: 1.14;
+  --thumb-outer: var(--fg);
+  --thumb-ring: var(--fg);
+  --thumb-center: var(--bg);
 }
 
-input[type="range"]::-moz-focus-outer { border: 0; }
+input[type="range"]::-moz-focus-outer {
+  border: 0;
+}
 
 @media (min-width: 800px) {
-  :root { --u: min(calc(100vw / 12), 56px); }
+  :root {
+    --u: min(calc(100vw / 12), 56px);
+  }
 }

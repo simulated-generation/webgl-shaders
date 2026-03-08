@@ -16,6 +16,7 @@
 <body>
   <div class="app">
     <div class="panel" role="application" aria-label="Minimal control app">
+
       <header class="controls">
         <div></div>
 
@@ -27,12 +28,33 @@
           </svg>
         </button>
 
-        <button class="btn small" id="btnVid" aria-label="Start video" title="Video">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <circle cx="12" cy="12" r="5.5"></circle>
-            <circle cx="12" cy="12" r="1.2"></circle>
-          </svg>
-        </button>
+        <div class="top-actions">
+          <button class="btn small" id="btnTheme" aria-label="Toggle dark mode" title="Theme">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="5"></circle>
+              <path d="M12 2v2.5"></path>
+              <path d="M12 19.5V22"></path>
+              <path d="M2 12h2.5"></path>
+              <path d="M19.5 12H22"></path>
+            </svg>
+          </button>
+
+          <button class="btn small" id="btnSync" aria-label="Enable sync" title="Sync">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M7 8a6 6 0 0 1 10-1"></path>
+              <path d="M17 5v4h-4"></path>
+              <path d="M17 16a6 6 0 0 1-10 1"></path>
+              <path d="M7 19v-4h4"></path>
+            </svg>
+          </button>
+
+          <button class="btn small" id="btnVid" aria-label="Start video" title="Video">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="5.5"></circle>
+              <circle cx="12" cy="12" r="1.2"></circle>
+            </svg>
+          </button>
+        </div>
       </header>
 
       <main class="faders" aria-label="Faders">

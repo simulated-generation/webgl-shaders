@@ -3,6 +3,7 @@ let queue = [];
 let connected = false;
 let reconnectTimer = null;
 let reconnectDelayMs = 2000;
+let messageHandler = null;
 
 function getBrokerHost() {
   if (location.hostname.endsWith("simulated-generation.xyz")) {
@@ -23,6 +24,10 @@ function scheduleReconnect(id) {
     connectToBroker(id);
     reconnectDelayMs = Math.min(reconnectDelayMs * 1.5, 10000);
   }, reconnectDelayMs);
+}
+
+export function onBrokerMessage(handler) {
+  messageHandler = handler;
 }
 
 export function connectToBroker(id) {
@@ -49,6 +54,17 @@ export function connectToBroker(id) {
 
   ws.onmessage = (event) => {
     console.log("[ws] recv:", event.data);
+
+    if (!messageHandler) {
+      return;
+    }
+
+    try {
+      const data = JSON.parse(event.data);
+      messageHandler(data);
+    } catch (error) {
+      console.log("[ws] invalid message:", error);
+    }
   };
 
   ws.onerror = (error) => {
