@@ -1,309 +1,46 @@
-import { connectToBroker, sendMessage, onBrokerMessage } from "./lib/ws-client.js";
+import { connectToBroker, onBrokerMessage, sendMessage } from "./lib/ws-client.js";
+import { registerSW } from "./core/pwa.js";
+import { getRoomId } from "./core/room.js";
+import { createThemeController } from "./ui/theme.js";
+import { createSyncController } from "./ui/sync.js";
+import { createFadersController } from "./ui/faders.js";
+import { createShotButtonController } from "./ui/shot-button.js";
+import { createImageOverlayController } from "./ui/image-overlay.js";
+import { handleBrokerMessage } from "./broker/messages.js";
 
-let syncEnabled = false;
-let isApplyingRemoteUpdate = false;
+async function boot() {
+  await registerSW();
 
-let overlayImageUrl = null;
-let overlayImageBlob = null;
-let overlayImageName = "capture.png";
-
-let shotPending = false;
-let shotPendingTimer = null;
-
-async function registerSW() {
-  if ("serviceWorker" in navigator) {
-    try {
-      await navigator.serviceWorker.register("./sw.js");
-      console.log("[pwa] service worker registered");
-    } catch (error) {
-      console.log("[pwa] service worker registration failed:", error);
-    }
-  }
-}
-
-function getRoomId() {
-  const url = new URL(location.href);
-  return url.searchParams.get("room") || "default";
-}
-
-function setTheme(isDark) {
-  document.body.classList.toggle("dark", isDark);
-  localStorage.setItem("theme", isDark ? "dark" : "light");
-
-  const btnTheme = document.getElementById("btnTheme");
-  btnTheme.classList.toggle("is-active", isDark);
-  btnTheme.setAttribute("aria-label", isDark ? "Enable light mode" : "Enable dark mode");
-  btnTheme.setAttribute("title", isDark ? "Light" : "Dark");
-}
-
-function initTheme() {
-  const saved = localStorage.getItem("theme");
-  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-  const isDark = saved ? saved === "dark" : prefersDark;
-
-  setTheme(isDark);
-
-  const btnTheme = document.getElementById("btnTheme");
-  btnTheme.addEventListener("click", () => {
-    setTheme(!document.body.classList.contains("dark"));
-  });
-}
-
-function setSync(enabled) {
-  syncEnabled = enabled;
-
-  const btnSync = document.getElementById("btnSync");
-  btnSync.classList.toggle("is-active", enabled);
-  btnSync.setAttribute("aria-label", enabled ? "Disable sync" : "Enable sync");
-  btnSync.setAttribute("title", enabled ? "Sync on" : "Sync off");
-}
-
-function initSync() {
-  setSync(false);
-
-  const btnSync = document.getElementById("btnSync");
-  btnSync.addEventListener("click", () => {
-    setSync(!syncEnabled);
-  });
-}
-
-function initFaders() {
-  const faders = document.querySelectorAll('input[type="range"]');
-
-  faders.forEach((fader) => {
-    const path = fader.dataset.path;
-
-    const activate = () => {
-      fader.classList.add("is-active");
-    };
-
-    const deactivate = () => {
-      fader.classList.remove("is-active");
-    };
-
-    fader.addEventListener("pointerdown", activate);
-    fader.addEventListener("pointerup", deactivate);
-    fader.addEventListener("pointercancel", deactivate);
-    fader.addEventListener("blur", deactivate);
-
-    fader.addEventListener("input", () => {
-      if (isApplyingRemoteUpdate) {
-        return;
-      }
-      sendMessage(path, fader.value);
-    });
-
-    sendMessage(path, fader.value);
+  const theme = createThemeController({
+    body: document.body,
+    button: document.getElementById("btnTheme"),
   });
 
-  window.addEventListener("pointerup", () => {
-    document
-      .querySelectorAll('input[type="range"].is-active')
-      .forEach((fader) => fader.classList.remove("is-active"));
-  });
-}
-
-function setShotPending(pending) {
-  const btnShot = document.getElementById("btnShot");
-  if (!btnShot) return;
-
-  shotPending = pending;
-  btnShot.classList.toggle("is-pending", pending);
-  btnShot.disabled = pending;
-  btnShot.setAttribute("aria-busy", pending ? "true" : "false");
-  btnShot.setAttribute("title", pending ? "Waiting for screenshot" : "Screenshot");
-}
-
-function clearShotPending() {
-  if (shotPendingTimer) {
-    clearTimeout(shotPendingTimer);
-    shotPendingTimer = null;
-  }
-  setShotPending(false);
-}
-
-function applyRemoteFaderUpdate(path, value) {
-  const fader = document.querySelector(`input[data-path="${CSS.escape(path)}"]`);
-  if (!fader) {
-    return;
-  }
-
-  const nextValue = Number(value);
-  if (Number.isNaN(nextValue)) {
-    return;
-  }
-
-  isApplyingRemoteUpdate = true;
-  fader.value = String(nextValue);
-  isApplyingRemoteUpdate = false;
-}
-
-function closeImageOverlay() {
-  clearShotPending();
-
-  const overlay = document.getElementById("imageOverlay");
-  const img = document.getElementById("overlayImage");
-
-  overlay.classList.add("hidden");
-  overlay.setAttribute("aria-hidden", "true");
-  img.removeAttribute("src");
-
-  if (overlayImageUrl) {
-    URL.revokeObjectURL(overlayImageUrl);
-    overlayImageUrl = null;
-  }
-
-  overlayImageBlob = null;
-  overlayImageName = "capture.png";
-}
-
-function showImageOverlay(blob, header = {}) {
-  const overlay = document.getElementById("imageOverlay");
-  const img = document.getElementById("overlayImage");
-
-  if (overlayImageUrl) {
-    URL.revokeObjectURL(overlayImageUrl);
-  }
-
-  overlayImageBlob = blob;
-  overlayImageName = `capture-${header.seq || Date.now()}.png`;
-  overlayImageUrl = URL.createObjectURL(blob);
-
-  img.src = overlayImageUrl;
-
-  overlay.classList.remove("hidden");
-  overlay.setAttribute("aria-hidden", "false");
-
-  clearShotPending();
-
-  console.log("[overlay] showing image", {
-    name: overlayImageName,
-    size: blob.size,
-    type: blob.type,
-    width: header.width,
-    height: header.height,
-  });
-}
-
-function saveCurrentOverlayImage() {
-  if (!overlayImageBlob || !overlayImageUrl) {
-    return;
-  }
-
-  const a = document.createElement("a");
-  a.href = overlayImageUrl;
-  a.download = overlayImageName;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-}
-
-async function shareCurrentOverlayImage() {
-  if (!overlayImageBlob) {
-    return;
-  }
-
-  const file = new File([overlayImageBlob], overlayImageName, {
-    type: overlayImageBlob.type || "image/png",
+  const sync = createSyncController({
+    button: document.getElementById("btnSync"),
   });
 
-  if (navigator.canShare && navigator.canShare({ files: [file] })) {
-    try {
-      await navigator.share({
-        files: [file],
-        title: overlayImageName,
-      });
-      return;
-    } catch (err) {
-      console.log("[share] cancelled or failed:", err);
-      return;
-    }
-  }
-
-  saveCurrentOverlayImage();
-}
-
-function initOverlay() {
-  const btnSave = document.getElementById("btnOverlaySave");
-  const btnShare = document.getElementById("btnOverlayShare");
-  const btnCancel = document.getElementById("btnOverlayCancel");
-  const overlay = document.getElementById("imageOverlay");
-  const panel = document.getElementById("imageOverlayPanel");
-
-  btnSave.addEventListener("click", saveCurrentOverlayImage);
-  btnShare.addEventListener("click", shareCurrentOverlayImage);
-  btnCancel.addEventListener("click", closeImageOverlay);
-
-  overlay.addEventListener("click", () => {
-    closeImageOverlay();
+  const overlay = createImageOverlayController({
+    overlay: document.getElementById("imageOverlay"),
+    panel: document.getElementById("imageOverlayPanel"),
+    image: document.getElementById("overlayImage"),
+    btnSave: document.getElementById("btnOverlaySave"),
+    btnShare: document.getElementById("btnOverlayShare"),
+    btnCancel: document.getElementById("btnOverlayCancel"),
   });
 
-  panel.addEventListener("click", (event) => {
-    event.stopPropagation();
+  const shot = createShotButtonController({
+    button: document.getElementById("btnShot"),
+    sendPictureRequest: () => sendMessage("/virtualctl/picture", 1),
   });
-}
 
-function initBrokerMessageHandling() {
-  onBrokerMessage((message) => {
-    if (!message) {
-      return;
-    }
-
-    if (message.type === "image-binary") {
-      const header = message.header || {};
-      const blob = message.blob;
-
-      if (!(blob instanceof Blob)) {
-        console.log("[image] invalid blob payload");
-        return;
-      }
-
-      const typedBlob = blob.type
-        ? blob
-        : new Blob([blob], { type: header.mime || "image/png" });
-
-      showImageOverlay(typedBlob, header);
-      return;
-    }
-
-    if (!syncEnabled) {
-      return;
-    }
-
-    if (message.type !== "osc" || !message.path || !Array.isArray(message.args)) {
-      return;
-    }
-
-    const firstArg = message.args[0];
-    if (!firstArg || typeof firstArg.v === "undefined") {
-      return;
-    }
-
-    applyRemoteFaderUpdate(message.path, firstArg.v);
+  const faders = createFadersController({
+    root: document,
+    sendValue: (path, value) => sendMessage(path, value),
   });
-}
 
-function initButtons() {
-  const btnShot = document.getElementById("btnShot");
   const btnVid = document.getElementById("btnVid");
-
   let recording = false;
-
-  btnShot.addEventListener("click", () => {
-    if (shotPending) {
-      return;
-    }
-
-    console.log("[ui] screenshot requested");
-    setShotPending(true);
-    sendMessage("/virtualctl/picture", 1);
-
-    shotPendingTimer = setTimeout(() => {
-      console.log("[ui] screenshot wait timeout");
-      clearShotPending();
-    }, 8000);
-  });
-
   btnVid.addEventListener("click", () => {
     recording = !recording;
     btnVid.classList.toggle("is-active", recording);
@@ -311,16 +48,24 @@ function initButtons() {
     btnVid.setAttribute("title", recording ? "Stop video" : "Video");
     console.log(recording ? "[ui] start video" : "[ui] stop video");
   });
-}
 
-async function boot() {
-  await registerSW();
-  initTheme();
-  initSync();
-  initFaders();
-  initButtons();
-  initOverlay();
-  initBrokerMessageHandling();
+  onBrokerMessage((message) => {
+    handleBrokerMessage(message, {
+      syncEnabled: () => sync.isEnabled(),
+      applyRemoteFaderUpdate: (path, value) => faders.applyRemoteUpdate(path, value),
+      showImageOverlay: (blob, header) => {
+        shot.clearPending();
+        overlay.show(blob, header);
+      },
+    });
+  });
+
+  theme.init();
+  sync.init();
+  faders.init();
+  shot.init();
+  overlay.init();
+
   connectToBroker(getRoomId());
 }
 
