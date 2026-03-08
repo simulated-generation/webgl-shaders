@@ -22,6 +22,19 @@ function initFaders() {
   faders.forEach((fader) => {
     const path = fader.dataset.path;
 
+    const activate = () => {
+      fader.classList.add("is-active");
+    };
+
+    const deactivate = () => {
+      fader.classList.remove("is-active");
+    };
+
+    fader.addEventListener("pointerdown", activate);
+    fader.addEventListener("pointerup", deactivate);
+    fader.addEventListener("pointercancel", deactivate);
+    fader.addEventListener("blur", deactivate);
+
     fader.addEventListener("input", () => {
       sendMessage(path, fader.value);
     });
