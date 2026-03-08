@@ -7,6 +7,9 @@ let overlayImageUrl = null;
 let overlayImageBlob = null;
 let overlayImageName = "capture.png";
 
+let shotPending = false;
+let shotPendingTimer = null;
+
 async function registerSW() {
   if ("serviceWorker" in navigator) {
     try {
@@ -100,6 +103,25 @@ function initFaders() {
   });
 }
 
+function setShotPending(pending) {
+  const btnShot = document.getElementById("btnShot");
+  if (!btnShot) return;
+
+  shotPending = pending;
+  btnShot.classList.toggle("is-pending", pending);
+  btnShot.disabled = pending;
+  btnShot.setAttribute("aria-busy", pending ? "true" : "false");
+  btnShot.setAttribute("title", pending ? "Waiting for screenshot" : "Screenshot");
+}
+
+function clearShotPending() {
+  if (shotPendingTimer) {
+    clearTimeout(shotPendingTimer);
+    shotPendingTimer = null;
+  }
+  setShotPending(false);
+}
+
 function applyRemoteFaderUpdate(path, value) {
   const fader = document.querySelector(`input[data-path="${CSS.escape(path)}"]`);
   if (!fader) {
@@ -117,6 +139,8 @@ function applyRemoteFaderUpdate(path, value) {
 }
 
 function closeImageOverlay() {
+  clearShotPending();
+
   const overlay = document.getElementById("imageOverlay");
   const img = document.getElementById("overlayImage");
 
@@ -149,6 +173,8 @@ function showImageOverlay(blob, header = {}) {
 
   overlay.classList.remove("hidden");
   overlay.setAttribute("aria-hidden", "false");
+
+  clearShotPending();
 
   console.log("[overlay] showing image", {
     name: overlayImageName,
@@ -202,15 +228,18 @@ function initOverlay() {
   const btnShare = document.getElementById("btnOverlayShare");
   const btnCancel = document.getElementById("btnOverlayCancel");
   const overlay = document.getElementById("imageOverlay");
+  const panel = document.getElementById("imageOverlayPanel");
 
   btnSave.addEventListener("click", saveCurrentOverlayImage);
   btnShare.addEventListener("click", shareCurrentOverlayImage);
   btnCancel.addEventListener("click", closeImageOverlay);
 
-  overlay.addEventListener("click", (event) => {
-    if (event.target === overlay || event.target.classList.contains("overlay-backdrop")) {
-      closeImageOverlay();
-    }
+  overlay.addEventListener("click", () => {
+    closeImageOverlay();
+  });
+
+  panel.addEventListener("click", (event) => {
+    event.stopPropagation();
   });
 }
 
@@ -261,8 +290,18 @@ function initButtons() {
   let recording = false;
 
   btnShot.addEventListener("click", () => {
+    if (shotPending) {
+      return;
+    }
+
     console.log("[ui] screenshot requested");
+    setShotPending(true);
     sendMessage("/virtualctl/picture", 1);
+
+    shotPendingTimer = setTimeout(() => {
+      console.log("[ui] screenshot wait timeout");
+      clearShotPending();
+    }, 8000);
   });
 
   btnVid.addEventListener("click", () => {

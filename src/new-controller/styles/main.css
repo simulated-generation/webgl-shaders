@@ -220,6 +220,14 @@ input[type="range"]::-moz-focus-outer {
   border: 0;
 }
 
+
+@media (min-width: 800px) {
+  :root {
+    --u: min(calc(100vw / 12), 56px);
+  }
+}
+
+
 .overlay.hidden {
   display: none;
 }
@@ -230,6 +238,7 @@ input[type="range"]::-moz-focus-outer {
   z-index: 9999;
   display: grid;
   place-items: center;
+  padding: var(--pad);
 }
 
 .overlay-backdrop {
@@ -245,15 +254,13 @@ input[type="range"]::-moz-focus-outer {
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 12px;
-  border-radius: 16px;
-  background: var(--panel-bg, #fff);
+  gap: calc(var(--u) * 0.25);
+  padding: calc(var(--u) * 0.25);
+  border-radius: calc(var(--u) * 0.28);
+  border: var(--line) solid var(--fg);
+  background: var(--bg);
+  color: var(--fg);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
-}
-
-body.dark .overlay-panel {
-  background: #111;
 }
 
 .overlay-image-wrap {
@@ -262,8 +269,9 @@ body.dark .overlay-panel {
   min-height: 200px;
   max-height: 70vh;
   overflow: auto;
-  border-radius: 12px;
-  background: rgba(127, 127, 127, 0.08);
+  border-radius: calc(var(--u) * 0.2);
+  border: var(--line) solid var(--fg);
+  background: color-mix(in srgb, var(--bg) 88%, var(--fg) 12%);
 }
 
 .overlay-image-wrap img {
@@ -271,17 +279,70 @@ body.dark .overlay-panel {
   max-width: 100%;
   max-height: 70vh;
   object-fit: contain;
-  border-radius: 8px;
+  border-radius: calc(var(--u) * 0.12);
 }
 
 .overlay-actions {
   display: flex;
-  gap: 8px;
+  gap: calc(var(--u) * 0.2);
   justify-content: flex-end;
 }
 
-@media (min-width: 800px) {
-  :root {
-    --u: min(calc(100vw / 12), 56px);
+.overlay-actions .btn {
+  background: var(--bg);
+  color: var(--fg);
+}
+
+.overlay-actions .btn svg * {
+  stroke: var(--fg);
+}
+
+body.dark .overlay-backdrop {
+  background: rgba(0, 0, 0, 0.82);
+}
+
+
+
+#btnShot {
+  position: relative;
+}
+
+#btnShot.is-pending {
+  transform: scale(1.08);
+}
+
+#btnShot.is-pending svg {
+  animation: shot-pulse 1s ease-in-out infinite;
+}
+
+#btnShot.is-pending::after {
+  content: "";
+  position: absolute;
+  inset: calc(var(--line) * -2);
+  border-radius: 999px;
+  border: var(--line) solid var(--fg);
+  border-top-color: transparent;
+  animation: shot-spin 0.9s linear infinite;
+}
+
+#btnShot:disabled {
+  opacity: 1;
+  cursor: default;
+}
+
+@keyframes shot-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes shot-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(0.92);
+    opacity: 0.7;
   }
 }
