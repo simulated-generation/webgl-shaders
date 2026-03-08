@@ -5,6 +5,8 @@ let reconnectTimer = null;
 let reconnectDelayMs = 2000;
 let messageHandler = null;
 
+let pendingBinaryImage = null;
+
 function getBrokerHost() {
   if (location.hostname.endsWith("simulated-generation.xyz")) {
     return "broker.simulated-generation.xyz";
@@ -42,6 +44,7 @@ export function connectToBroker(id) {
 
   console.log("[ws] connecting:", url);
   ws = new WebSocket(url);
+  ws.binaryType = "blob";
 
   ws.onopen = () => {
     connected = true;
@@ -52,19 +55,49 @@ export function connectToBroker(id) {
     queue = [];
   };
 
-  ws.onmessage = (event) => {
-    console.log("[ws] recv:", event.data);
+  ws.onmessage = async (event) => {
+    if (typeof event.data === "string") {
+      console.log("[ws] recv:", event.data);
 
-    if (!messageHandler) {
+      let data;
+      try {
+        data = JSON.parse(event.data);
+      } catch (error) {
+        console.log("[ws] invalid JSON message:", error);
+        return;
+      }
+
+      if (data && data.type === "image") {
+        pendingBinaryImage = data;
+      }
+
+      if (messageHandler) {
+        messageHandler(data);
+      }
       return;
     }
 
-    try {
-      const data = JSON.parse(event.data);
-      messageHandler(data);
-    } catch (error) {
-      console.log("[ws] invalid message:", error);
+    if (event.data instanceof Blob) {
+      console.log("[ws] recv: <binary blob>", event.data.size, "bytes");
+
+      if (pendingBinaryImage && messageHandler) {
+        const header = pendingBinaryImage;
+        pendingBinaryImage = null;
+
+        const imageMessage = {
+          type: "image-binary",
+          header,
+          blob: event.data,
+        };
+
+        messageHandler(imageMessage);
+      } else {
+        console.log("[ws] unexpected binary frame with no pending image header");
+      }
+      return;
     }
+
+    console.log("[ws] recv: unknown frame type", event.data);
   };
 
   ws.onerror = (error) => {
@@ -73,6 +106,7 @@ export function connectToBroker(id) {
 
   ws.onclose = () => {
     connected = false;
+    pendingBinaryImage = null;
     scheduleReconnect(id);
   };
 }

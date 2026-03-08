@@ -3,11 +3,9 @@ import { setControl } from './state.js';
 export function connectBroker({ id, url, onMessage, onOpen, onClose, log = true } = {}) {
   const wsUrl = url || (() => {
     const isSecure = location.protocol === "https:";
-    // If hosted on simulated-generation.xyz, use broker subdomain
     if (location.hostname.endsWith("simulated-generation.xyz")) {
       return `${isSecure ? "wss" : "ws"}://broker.simulated-generation.xyz/ws?id=${encodeURIComponent(id || "default")}`;
     }
-    // Default local broker
     return `${isSecure ? "wss" : "ws"}://localhost:8000/ws?id=${encodeURIComponent(id || "default")}`;
   })();
 
@@ -16,12 +14,23 @@ export function connectBroker({ id, url, onMessage, onOpen, onClose, log = true 
     ws = new WebSocket(wsUrl);
   } catch (e) {
     if (log) console.warn("[broker] cannot create websocket:", e);
-    return { ws: null, send: () => {} };
+    return {
+      ws: null,
+      send: () => false,
+      sendRaw: () => false,
+      isOpen: () => false,
+    };
   }
 
   ws.onopen = (ev) => {
     if (log) console.log(`[broker] connected to ${wsUrl}`);
-    try { ws.send(JSON.stringify({ type: "join", room: id || "default", role: "shader" })); } catch {}
+    try {
+      ws.send(JSON.stringify({
+        type: "join",
+        room: id || "default",
+        role: "shader"
+      }));
+    } catch {}
     onOpen && onOpen(ev, ws);
   };
 
@@ -45,14 +54,23 @@ export function connectBroker({ id, url, onMessage, onOpen, onClose, log = true 
     onClose && onClose(ev);
   };
 
-  ws.onerror = (ev) => {
-    // Connection refused will land here; keep it non-fatal.
+  ws.onerror = () => {
     if (log) console.warn("[broker] websocket error (non-fatal)");
   };
 
   const send = (obj) => {
-    if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(obj));
+    if (!ws || ws.readyState !== WebSocket.OPEN) return false;
+    ws.send(JSON.stringify(obj));
+    return true;
   };
 
-  return { ws, send };
+  const sendRaw = (data) => {
+    if (!ws || ws.readyState !== WebSocket.OPEN) return false;
+    ws.send(data);
+    return true;
+  };
+
+  const isOpen = () => !!ws && ws.readyState === WebSocket.OPEN;
+
+  return { ws, send, sendRaw, isOpen };
 }

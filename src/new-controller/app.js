@@ -3,6 +3,10 @@ import { connectToBroker, sendMessage, onBrokerMessage } from "./lib/ws-client.j
 let syncEnabled = false;
 let isApplyingRemoteUpdate = false;
 
+let overlayImageUrl = null;
+let overlayImageBlob = null;
+let overlayImageName = "capture.png";
+
 async function registerSW() {
   if ("serviceWorker" in navigator) {
     try {
@@ -112,13 +116,132 @@ function applyRemoteFaderUpdate(path, value) {
   isApplyingRemoteUpdate = false;
 }
 
+function closeImageOverlay() {
+  const overlay = document.getElementById("imageOverlay");
+  const img = document.getElementById("overlayImage");
+
+  overlay.classList.add("hidden");
+  overlay.setAttribute("aria-hidden", "true");
+  img.removeAttribute("src");
+
+  if (overlayImageUrl) {
+    URL.revokeObjectURL(overlayImageUrl);
+    overlayImageUrl = null;
+  }
+
+  overlayImageBlob = null;
+  overlayImageName = "capture.png";
+}
+
+function showImageOverlay(blob, header = {}) {
+  const overlay = document.getElementById("imageOverlay");
+  const img = document.getElementById("overlayImage");
+
+  if (overlayImageUrl) {
+    URL.revokeObjectURL(overlayImageUrl);
+  }
+
+  overlayImageBlob = blob;
+  overlayImageName = `capture-${header.seq || Date.now()}.png`;
+  overlayImageUrl = URL.createObjectURL(blob);
+
+  img.src = overlayImageUrl;
+
+  overlay.classList.remove("hidden");
+  overlay.setAttribute("aria-hidden", "false");
+
+  console.log("[overlay] showing image", {
+    name: overlayImageName,
+    size: blob.size,
+    type: blob.type,
+    width: header.width,
+    height: header.height,
+  });
+}
+
+function saveCurrentOverlayImage() {
+  if (!overlayImageBlob || !overlayImageUrl) {
+    return;
+  }
+
+  const a = document.createElement("a");
+  a.href = overlayImageUrl;
+  a.download = overlayImageName;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
+async function shareCurrentOverlayImage() {
+  if (!overlayImageBlob) {
+    return;
+  }
+
+  const file = new File([overlayImageBlob], overlayImageName, {
+    type: overlayImageBlob.type || "image/png",
+  });
+
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({
+        files: [file],
+        title: overlayImageName,
+      });
+      return;
+    } catch (err) {
+      console.log("[share] cancelled or failed:", err);
+      return;
+    }
+  }
+
+  saveCurrentOverlayImage();
+}
+
+function initOverlay() {
+  const btnSave = document.getElementById("btnOverlaySave");
+  const btnShare = document.getElementById("btnOverlayShare");
+  const btnCancel = document.getElementById("btnOverlayCancel");
+  const overlay = document.getElementById("imageOverlay");
+
+  btnSave.addEventListener("click", saveCurrentOverlayImage);
+  btnShare.addEventListener("click", shareCurrentOverlayImage);
+  btnCancel.addEventListener("click", closeImageOverlay);
+
+  overlay.addEventListener("click", (event) => {
+    if (event.target === overlay || event.target.classList.contains("overlay-backdrop")) {
+      closeImageOverlay();
+    }
+  });
+}
+
 function initBrokerMessageHandling() {
   onBrokerMessage((message) => {
+    if (!message) {
+      return;
+    }
+
+    if (message.type === "image-binary") {
+      const header = message.header || {};
+      const blob = message.blob;
+
+      if (!(blob instanceof Blob)) {
+        console.log("[image] invalid blob payload");
+        return;
+      }
+
+      const typedBlob = blob.type
+        ? blob
+        : new Blob([blob], { type: header.mime || "image/png" });
+
+      showImageOverlay(typedBlob, header);
+      return;
+    }
+
     if (!syncEnabled) {
       return;
     }
 
-    if (!message || message.type !== "osc" || !message.path || !Array.isArray(message.args)) {
+    if (message.type !== "osc" || !message.path || !Array.isArray(message.args)) {
       return;
     }
 
@@ -139,7 +262,7 @@ function initButtons() {
 
   btnShot.addEventListener("click", () => {
     console.log("[ui] screenshot requested");
-    sendMessage("/virtualctl/picture",1);
+    sendMessage("/virtualctl/picture", 1);
   });
 
   btnVid.addEventListener("click", () => {
@@ -157,6 +280,7 @@ async function boot() {
   initSync();
   initFaders();
   initButtons();
+  initOverlay();
   initBrokerMessageHandling();
   connectToBroker(getRoomId());
 }

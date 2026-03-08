@@ -4,6 +4,7 @@ import { Simulation } from "./sim/sim.js";
 import { ContentRenderer } from "./render/content.js";
 import { SceneRenderer } from "./render/scene.js";
 import { KeyboardCamera } from "./render/camera.js";
+import { getControl } from "./core/state.js";
 
 let _dbgT = 0;
 
@@ -48,7 +49,7 @@ async function main() {
 
   const id = new URLSearchParams(window.location.search).get("id") || "default";
   // non-fatal if broker absent
-  connectBroker({ id, log: true });
+  const broker = connectBroker({ id, log: true });
 
   const [contentVS, contentFS, sceneVS, sceneFS] = await Promise.all([
     loadText("/shaders/content.vert"),
@@ -59,7 +60,7 @@ async function main() {
 
   const sim = new Simulation(400);
 
-  const content = new ContentRenderer(gl, contentVS, contentFS, sim.N);
+  const content = new ContentRenderer(gl, contentVS, contentFS, sim.N, broker, id);
   const scene = new SceneRenderer(gl, sceneVS, sceneFS);
 
   const camera = new KeyboardCamera();
@@ -90,7 +91,7 @@ async function main() {
       );
     }
 
-    for (let i = 0; i < steps; i++) sim.step(dt);
+    //for (let i = 0; i < steps; i++) sim.step(dt);
 
     const { w, h } = resizeCanvasToDisplaySize(canvas);
 
