@@ -139,6 +139,7 @@ function initButtons() {
 
   btnShot.addEventListener("click", () => {
     console.log("[ui] screenshot requested");
+    sendMessage("/virtualctl/picture",1);
   });
 
   btnVid.addEventListener("click", () => {
