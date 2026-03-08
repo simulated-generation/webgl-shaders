@@ -11,8 +11,8 @@ export default {
       min: 0,
       max: 1,
       step: 0.001,
-      width: 420,
-      height: 40,
+      width: 920,
+      height: 120,
       colors: "#81a1c1;#4c566a;#444",
       oscPath: `/virtualctl/F${String(i).padStart(3, "0")}`,
     };

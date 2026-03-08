@@ -9,6 +9,7 @@ services:
       - ./src/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
       - ./src/webgl-shader:/srv/webgl-shaders
       - ./src/glsl-screen-refactor:/srv/glsl-screen-refactor:ro
+      - ./src/new-controller:/srv/new-controller:ro
       - ./volumes/caddy/data:/data
       - ./volumes/caddy/config:/config
     restart: unless-stopped

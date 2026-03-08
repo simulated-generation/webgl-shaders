@@ -13,6 +13,7 @@ broker.simulated-generation.xyz {
 }
 
 control.simulated-generation.xyz {
-    reverse_proxy controller:80
+    root * /srv/new-controller
+    file_server
 }
 

@@ -59,12 +59,12 @@ void main() {
   float F11 = u_virtualctl_F001;
   float F12 = u_virtualctl_F002;
   float F13 = u_virtualctl_F003;
-  float F14 = u_virtualctl_F004;
-  float F15 = u_virtualctl_F005;
-  float F16 = u_virtualctl_F006;
-  float F17 = u_virtualctl_F007;
-  float F18 = u_virtualctl_F008;
-  float F19 = u_virtualctl_F009;
+  float F14 = u_virtualctl_F004;  //Remanence
+  float F15 = u_virtualctl_F005;  //Displacement x
+  float F16 = u_virtualctl_F006;  //Displacement y
+  float F17 = u_virtualctl_F007;  //Not set / set BPM
+  float F18 = u_virtualctl_F008;  //Not set / set particle size
+  float F19 = u_virtualctl_F009;  //Number of particles
   float F21 = u_virtualctl_F010;
 
   // In this framework you already have v_uv = 0..1

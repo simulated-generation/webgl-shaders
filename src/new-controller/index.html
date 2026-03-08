@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Minimal Control App</title>
+
+  <meta name="theme-color" content="#ffffff" />
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="./icons/favicon-16x16.png" />
+  <link rel="icon" href="./icons/favicon.ico" />
+  <link rel="stylesheet" href="./styles/main.css" />
+</head>
+<body>
+  <div class="app">
+    <div class="panel" role="application" aria-label="Minimal control app">
+      <header class="controls">
+        <div></div>
+
+        <button class="btn big" id="btnShot" aria-label="Take screenshot" title="Screenshot">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="5" y="8" width="14" height="10" rx="2"></rect>
+            <path d="M9 8l1.2-2h3.6L15 8"></path>
+            <circle cx="12" cy="13" r="3.2"></circle>
+          </svg>
+        </button>
+
+        <button class="btn small" id="btnVid" aria-label="Start video" title="Video">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="5.5"></circle>
+            <circle cx="12" cy="12" r="1.2"></circle>
+          </svg>
+        </button>
+      </header>
+
+      <main class="faders" aria-label="Faders">
+        <div class="fader-row"><input data-path="/virtualctl/F001" type="range" min="0" max="1" step="0.00390625" value="0.1" aria-label="Fader 1"></div>
+        <div class="fader-row"><input data-path="/virtualctl/F002" type="range" min="0" max="1" step="0.00390625" value="0.2"  aria-label="Fader 2"></div>
+        <div class="fader-row"><input data-path="/virtualctl/F003" type="range" min="0" max="1" step="0.00390625" value="0.3"  aria-label="Fader 3"></div>
+        <div class="fader-row"><input data-path="/virtualctl/F004" type="range" min="0" max="1" step="0.00390625" value="0.4"  aria-label="Fader 4"></div>
+        <div class="fader-row"><input data-path="/virtualctl/F005" type="range" min="0" max="1" step="0.00390625" value="0.5"  aria-label="Fader 5"></div>
+        <div class="fader-row"><input data-path="/virtualctl/F006" type="range" min="0" max="1" step="0.00390625" value="0.6"  aria-label="Fader 6"></div>
+        <div class="fader-row"><input data-path="/virtualctl/F007" type="range" min="0" max="1" step="0.00390625" value="0.7"  aria-label="Fader 7"></div>
+        <div class="fader-row"><input data-path="/virtualctl/F008" type="range" min="0" max="1" step="0.00390625" value="0.8"  aria-label="Fader 8"></div>
+        <div class="fader-row"><input data-path="/virtualctl/F009" type="range" min="0" max="1" step="0.00390625" value="0.9"  aria-label="Fader 9"></div>
+        <div class="fader-row"><input data-path="/virtualctl/F010" type="range" min="0" max="1" step="0.00390625" value="1.0"  aria-label="Fader 10"></div>
+      </main>
+    </div>
+  </div>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
