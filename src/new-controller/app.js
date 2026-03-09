@@ -6,6 +6,7 @@ import { createSyncController } from "./ui/sync.js";
 import { createFadersController } from "./ui/faders.js";
 import { createShotButtonController } from "./ui/shot-button.js";
 import { createImageOverlayController } from "./ui/image-overlay.js";
+import { createInfoOverlayController } from "./ui/info-overlay.js";
 import { createOrientationController } from "./ui/orientation.js";
 import { createButtonPulseController } from "./ui/button-pulse.js";
 import { handleBrokerMessage } from "./broker/messages.js";
@@ -38,6 +39,12 @@ async function boot() {
     btnSave: document.getElementById("btnOverlaySave"),
     btnShare: document.getElementById("btnOverlayShare"),
     btnCancel: document.getElementById("btnOverlayCancel"),
+  });
+
+  const infoOverlay = createInfoOverlayController({
+    overlay: document.getElementById("infoOverlay"),
+    btnOpen: document.getElementById("btnInfo"),
+    btnClose: document.getElementById("btnInfoClose"),
   });
 
   const shot = createShotButtonController({
@@ -79,6 +86,7 @@ async function boot() {
   faders.init();
   shot.init();
   overlay.init();
+  infoOverlay.init();
 
   connectToBroker(getRoomId());
 }
