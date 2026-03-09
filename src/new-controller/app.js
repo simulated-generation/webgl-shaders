@@ -6,6 +6,8 @@ import { createSyncController } from "./ui/sync.js";
 import { createFadersController } from "./ui/faders.js";
 import { createShotButtonController } from "./ui/shot-button.js";
 import { createImageOverlayController } from "./ui/image-overlay.js";
+import { createOrientationController } from "./ui/orientation.js";
+import { createButtonPulseController } from "./ui/button-pulse.js";
 import { handleBrokerMessage } from "./broker/messages.js";
 
 async function boot() {
@@ -18,6 +20,15 @@ async function boot() {
 
   const sync = createSyncController({
     button: document.getElementById("btnSync"),
+  });
+
+  const orientation = createOrientationController({
+    body: document.body,
+  });
+
+  const buttonPulse = createButtonPulseController({
+    root: document,
+    selector: ".btn",
   });
 
   const overlay = createImageOverlayController({
@@ -41,6 +52,7 @@ async function boot() {
 
   const btnVid = document.getElementById("btnVid");
   let recording = false;
+
   btnVid.addEventListener("click", () => {
     recording = !recording;
     btnVid.classList.toggle("is-active", recording);
@@ -62,6 +74,8 @@ async function boot() {
 
   theme.init();
   sync.init();
+  orientation.init();
+  buttonPulse.init();
   faders.init();
   shot.init();
   overlay.init();
