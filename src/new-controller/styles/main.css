@@ -304,6 +304,7 @@ body.orientation-right .overlay-panel {
   display: flex;
   gap: calc(var(--u) * 0.2);
   justify-content: flex-end;
+  justify-self: end;
 }
 
 .overlay-actions .btn {
@@ -427,4 +428,74 @@ body.dark .overlay-backdrop {
   opacity: 0.72;
   text-align: right;
   word-break: break-word;
+}
+
+
+.info-overlay-content {
+  display: grid;
+  gap: calc(var(--u) * 0.35);
+  justify-items: center;
+  text-align: center;
+}
+
+.info-title h1 {
+  margin: 0;
+  font-size: 2.2rem;
+  letter-spacing: 0.06em;
+}
+
+.info-subtitle {
+  margin: 0;
+  font-size: 1.25rem;
+  opacity: 0.8;
+}
+
+.info-icons {
+  display: flex;
+  gap: calc(var(--u) * 0.35);
+  justify-content: center;
+}
+
+.info-credit {
+  display: grid;
+  gap: calc(var(--u) * 0.15);
+  justify-items: center;
+}
+
+.info-credit p {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.info-icon {
+  width: calc(var(--u) * 1.4);
+  height: calc(var(--u) * 1.4);
+  display: grid;
+  place-items: center;
+  border: var(--line) solid var(--fg);
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--fg);
+  text-decoration: none;
+  transition:
+    transform 120ms ease-out,
+    background 120ms linear,
+    color 120ms linear;
+}
+
+.info-icon:active {
+  transform: scale(0.95);
+}
+
+.info-icon svg {
+  width: 65%;
+  height: 65%;
+}
+
+.info-icon svg * {
+  stroke: var(--fg);
+  stroke-width: var(--line);
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
