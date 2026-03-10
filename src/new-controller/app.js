@@ -5,6 +5,7 @@ import { createThemeController } from "./ui/theme.js";
 import { createSyncController } from "./ui/sync.js";
 import { createFadersController } from "./ui/faders.js";
 import { createShotButtonController } from "./ui/shot-button.js";
+import { createVideoButtonController } from "./ui/video-button.js";
 import { createImageOverlayController } from "./ui/image-overlay.js";
 import { createVideoOverlayController } from "./ui/video-overlay.js";
 import { createInfoOverlayController } from "./ui/info-overlay.js";
@@ -70,13 +71,9 @@ async function boot() {
   const btnVid = document.getElementById("btnVid");
   let recording = false;
 
-  btnVid.addEventListener("click", () => {
-    recording = !recording;
-    btnVid.classList.toggle("is-active", recording);
-    btnVid.setAttribute("aria-label", recording ? "Stop video" : "Start video");
-    btnVid.setAttribute("title", recording ? "Stop video" : "Video");
-    console.log(recording ? "[ui] start video" : "[ui] stop video");
-    recording && sendMessage("/virtualctl/video", 1);
+  const videoButton = createVideoButtonController({
+    button: document.getElementById("btnVid"),
+    sendVideoRequest: () => sendMessage("/virtualctl/video", 1),
   });
 
   onBrokerMessage((message) => {
@@ -88,11 +85,8 @@ async function boot() {
         overlay.show(blob, header);
       },
       showVideoOverlay: (blob, header) => {
+        videoButton.clearPending();
         videoOverlay.show(blob, header);
-        btnVid.classList.remove("is-active");
-        btnVid.setAttribute("aria-label", "Start video");
-        btnVid.setAttribute("title", "Video");
-        recording = false;
       },
     });
   });
@@ -103,6 +97,7 @@ async function boot() {
   buttonPulse.init();
   faders.init();
   shot.init();
+  videoButton.init();
   overlay.init();
   videoOverlay.init();
   infoOverlay.init();

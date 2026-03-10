@@ -510,3 +510,30 @@ body.dark .overlay-backdrop {
   border-radius: calc(var(--u) * 0.12);
   background: #000;
 }
+
+#btnVid {
+  position: relative;
+}
+
+#btnVid.is-pending {
+  transform: scale(1.08);
+}
+
+#btnVid.is-pending svg {
+  animation: shot-pulse 1s ease-in-out infinite;
+}
+
+#btnVid.is-pending::after {
+  content: "";
+  position: absolute;
+  inset: calc(var(--line) * -2);
+  border-radius: 999px;
+  border: var(--line) solid var(--fg);
+  border-top-color: transparent;
+  animation: shot-spin 0.9s linear infinite;
+}
+
+#btnVid:disabled {
+  opacity: 1;
+  cursor: default;
+}
