@@ -6,6 +6,7 @@ import { createSyncController } from "./ui/sync.js";
 import { createFadersController } from "./ui/faders.js";
 import { createShotButtonController } from "./ui/shot-button.js";
 import { createImageOverlayController } from "./ui/image-overlay.js";
+import { createVideoOverlayController } from "./ui/video-overlay.js";
 import { createInfoOverlayController } from "./ui/info-overlay.js";
 import { createOrientationController } from "./ui/orientation.js";
 import { createButtonPulseController } from "./ui/button-pulse.js";
@@ -41,6 +42,15 @@ async function boot() {
     btnCancel: document.getElementById("btnOverlayCancel"),
   });
 
+  const videoOverlay = createVideoOverlayController({
+    overlay: document.getElementById("videoOverlay"),
+    panel: document.getElementById("videoOverlayPanel"),
+    video: document.getElementById("overlayVideo"),
+    btnSave: document.getElementById("btnVideoSave"),
+    btnShare: document.getElementById("btnVideoShare"),
+    btnCancel: document.getElementById("btnVideoCancel"),
+  });
+
   const infoOverlay = createInfoOverlayController({
     overlay: document.getElementById("infoOverlay"),
     btnOpen: document.getElementById("btnInfo"),
@@ -66,6 +76,7 @@ async function boot() {
     btnVid.setAttribute("aria-label", recording ? "Stop video" : "Start video");
     btnVid.setAttribute("title", recording ? "Stop video" : "Video");
     console.log(recording ? "[ui] start video" : "[ui] stop video");
+    recording && sendMessage("/virtualctl/video", 1);
   });
 
   onBrokerMessage((message) => {
@@ -75,6 +86,13 @@ async function boot() {
       showImageOverlay: (blob, header) => {
         shot.clearPending();
         overlay.show(blob, header);
+      },
+      showVideoOverlay: (blob, header) => {
+        videoOverlay.show(blob, header);
+        btnVid.classList.remove("is-active");
+        btnVid.setAttribute("aria-label", "Start video");
+        btnVid.setAttribute("title", "Video");
+        recording = false;
       },
     });
   });
@@ -86,6 +104,7 @@ async function boot() {
   faders.init();
   shot.init();
   overlay.init();
+  videoOverlay.init();
   infoOverlay.init();
 
   connectToBroker(getRoomId());

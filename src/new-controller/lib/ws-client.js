@@ -5,7 +5,7 @@ let reconnectTimer = null;
 let reconnectDelayMs = 2000;
 let messageHandler = null;
 
-let pendingBinaryImage = null;
+let pendingBinaryPayload = null;
 
 function getBrokerHost() {
   if (location.hostname.endsWith("simulated-generation.xyz")) {
@@ -55,7 +55,7 @@ export function connectToBroker(id) {
     queue = [];
   };
 
-  ws.onmessage = async (event) => {
+  ws.onmessage = (event) => {
     if (typeof event.data === "string") {
       console.log("[ws] recv:", event.data);
 
@@ -67,8 +67,8 @@ export function connectToBroker(id) {
         return;
       }
 
-      if (data && data.type === "image") {
-        pendingBinaryImage = data;
+      if (data && (data.type === "image" || data.type === "video")) {
+        pendingBinaryPayload = data;
       }
 
       if (messageHandler) {
@@ -80,20 +80,34 @@ export function connectToBroker(id) {
     if (event.data instanceof Blob) {
       console.log("[ws] recv: <binary blob>", event.data.size, "bytes");
 
-      if (pendingBinaryImage && messageHandler) {
-        const header = pendingBinaryImage;
-        pendingBinaryImage = null;
-
-        const imageMessage = {
-          type: "image-binary",
-          header,
-          blob: event.data,
-        };
-
-        messageHandler(imageMessage);
-      } else {
-        console.log("[ws] unexpected binary frame with no pending image header");
+      if (!pendingBinaryPayload) {
+        console.log("[ws] unexpected binary frame with no pending header");
+        return;
       }
+
+      const header = pendingBinaryPayload;
+      pendingBinaryPayload = null;
+
+      if (messageHandler) {
+        if (header.type === "image") {
+          messageHandler({
+            type: "image-binary",
+            header,
+            blob: event.data,
+          });
+          return;
+        }
+
+        if (header.type === "video") {
+          messageHandler({
+            type: "video-binary",
+            header,
+            blob: event.data,
+          });
+          return;
+        }
+      }
+
       return;
     }
 
@@ -106,7 +120,7 @@ export function connectToBroker(id) {
 
   ws.onclose = () => {
     connected = false;
-    pendingBinaryImage = null;
+    pendingBinaryPayload = null;
     scheduleReconnect(id);
   };
 }

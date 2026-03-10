@@ -2,6 +2,7 @@ export function handleBrokerMessage(message, {
   syncEnabled,
   applyRemoteFaderUpdate,
   showImageOverlay,
+  showVideoOverlay,
 }) {
   if (!message) {
     return;
@@ -21,6 +22,23 @@ export function handleBrokerMessage(message, {
       : new Blob([blob], { type: header.mime || "image/png" });
 
     showImageOverlay(typedBlob, header);
+    return;
+  }
+
+  if (message.type === "video-binary") {
+    const header = message.header || {};
+    const blob = message.blob;
+
+    if (!(blob instanceof Blob)) {
+      console.log("[video] invalid blob payload");
+      return;
+    }
+
+    const typedBlob = blob.type
+      ? blob
+      : new Blob([blob], { type: header.mime || "video/webm" });
+
+    showVideoOverlay(typedBlob, header);
     return;
   }
 

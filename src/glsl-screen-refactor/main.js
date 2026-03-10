@@ -4,7 +4,8 @@ import { Simulation } from "./sim/sim.js";
 import { ContentRenderer } from "./render/content.js";
 import { SceneRenderer } from "./render/scene.js";
 import { KeyboardCamera } from "./render/camera.js";
-import { getControl } from "./core/state.js";
+import { getControl, setControl } from "./core/state.js";
+import { createCanvasVideoRecorder } from "./core/video-recorder.js";
 
 let _dbgT = 0;
 
@@ -51,6 +52,14 @@ async function main() {
   // non-fatal if broker absent
   const broker = connectBroker({ id, log: true });
 
+  const videoRecorder = createCanvasVideoRecorder(canvas, {
+    broker,
+    roomId: id,
+    fps: 30,
+    durationMs: 5000,
+    dbKey: "latest-video",
+  });
+
   const [contentVS, contentFS, sceneVS, sceneFS] = await Promise.all([
     loadText("/shaders/content.vert"),
     loadText("/shaders/content.frag"),
@@ -71,6 +80,8 @@ async function main() {
   }
   window.addEventListener("resize", handleResize);
   handleResize();
+
+  let prevVideo = 0;
 
   function loop() {
     const { steps, dt, now, delta } = updateTime();
@@ -98,6 +109,23 @@ async function main() {
     content.uploadSim(sim.payload());
     content.render(now, w, h);
     scene.draw(content.texture(), w, h, camera.viewMatrix());
+
+    const video = getControl("/virtualctl/video", 0);
+    const videoRisingEdge = video >= 1 && prevVideo < 1;
+
+    if (videoRisingEdge) {
+      if (!videoRecorder.isBusy()) {
+        void videoRecorder.start();
+      } else {
+        console.log("[video] trigger ignored, recorder busy");
+      }
+
+      // re-arm the trigger locally so the next /virtualctl/video 1 can fire again
+      setControl("/virtualctl/video", 0);
+      prevVideo = 0;
+    } else {
+      prevVideo = video;
+    }
 
     requestAnimationFrame(loop);
   }

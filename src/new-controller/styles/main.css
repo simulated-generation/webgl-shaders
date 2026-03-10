@@ -499,3 +499,14 @@ body.dark .overlay-backdrop {
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+
+.overlay-image-wrap video {
+  display: block;
+  max-width: 100%;
+  max-height: 70vh;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  border-radius: calc(var(--u) * 0.12);
+  background: #000;
+}
