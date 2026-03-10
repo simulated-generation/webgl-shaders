@@ -59,8 +59,8 @@ function pickVideoMimeType() {
 export function createCanvasVideoRecorder(canvas, {
   broker = null,
   roomId = "default",
-  fps = 30,
-  durationMs = 5000,
+  fps = 60,
+  durationMs = 20000,
   dbKey = "latest-video",
 } = {}) {
   let recorder = null;

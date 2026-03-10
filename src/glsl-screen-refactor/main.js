@@ -55,8 +55,8 @@ async function main() {
   const videoRecorder = createCanvasVideoRecorder(canvas, {
     broker,
     roomId: id,
-    fps: 30,
-    durationMs: 5000,
+    fps: 60,
+    durationMs: 10000,
     dbKey: "latest-video",
   });
 
