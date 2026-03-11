@@ -1,3 +1,5 @@
+import { makeMediaFilename } from "./download-name.js";
+
 export function createVideoOverlayController({
   overlay,
   panel,
@@ -8,7 +10,8 @@ export function createVideoOverlayController({
 }) {
   let videoUrl = null;
   let videoBlob = null;
-  let videoName = "capture.webm";
+  let videoName = "pixelor-video.webm";
+  let videoArrivedAt = null;
 
   function cleanupObjectUrl() {
     if (videoUrl) {
@@ -28,15 +31,26 @@ export function createVideoOverlayController({
     cleanupObjectUrl();
 
     videoBlob = null;
-    videoName = "capture.webm";
+    videoName = "pixelor-video.webm";
+    videoArrivedAt = null;
   }
 
   function show(blob, header = {}) {
     cleanupObjectUrl();
 
     videoBlob = blob;
-    const ext = (header.mime || blob.type || "video/webm").includes("mp4") ? "mp4" : "webm";
-    videoName = `capture-${header.seq || Date.now()}.${ext}`;
+    videoArrivedAt = new Date();
+
+    const mime = header.mime || blob.type || "video/webm";
+    const ext = mime.includes("mp4") ? "mp4" : "webm";
+
+    videoName = makeMediaFilename({
+      prefix: "pixelor",
+      kind: "video",
+      extension: ext,
+      arrivedAt: videoArrivedAt,
+    });
+
     videoUrl = URL.createObjectURL(blob);
 
     video.src = videoUrl;
@@ -52,6 +66,7 @@ export function createVideoOverlayController({
       width: header.width,
       height: header.height,
       durationMs: header.durationMs,
+      arrivedAt: videoArrivedAt.toISOString(),
     });
   }
 
