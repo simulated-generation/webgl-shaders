@@ -26,6 +26,7 @@
 html,
 body {
   height: 100%;
+  overflow: hidden;
 }
 
 body {
@@ -73,6 +74,22 @@ body.dark {
   display: flex;
   align-items: center;
   justify-content: space-around;
+}
+
+.app,
+.panel,
+.faders {
+  touch-action: none;
+}
+
+.faders {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.faders input[type="range"] {
+  pointer-events: none;
 }
 
 .top-actions {
