@@ -4,6 +4,7 @@ import { getRoomId } from "./core/room.js";
 import { createThemeController } from "./ui/theme.js";
 import { createSyncController } from "./ui/sync.js";
 import { createFadersController } from "./ui/faders.js";
+import { createDeviceOrientationController } from "./ui/device-orientation.js";
 import { createShotButtonController } from "./ui/shot-button.js";
 import { createVideoButtonController } from "./ui/video-button.js";
 import { createImageOverlayController } from "./ui/image-overlay.js";
@@ -32,6 +33,11 @@ async function boot() {
   const buttonPulse = createButtonPulseController({
     root: document,
     selector: ".btn",
+  });
+
+  const deviceOrientation = createDeviceOrientationController({
+    button: document.getElementById("btnOrient"),
+    sendValue: (path, value) => sendMessage(path, value),
   });
 
   const overlay = createImageOverlayController({
@@ -96,6 +102,7 @@ async function boot() {
   orientation.init();
   buttonPulse.init();
   faders.init();
+  deviceOrientation.init();
   shot.init();
   videoButton.init();
   overlay.init();
