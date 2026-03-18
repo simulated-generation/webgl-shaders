@@ -145,9 +145,9 @@ void main() {
   float F14 = u_virtualctl_F004;  // remanence
   float F15 = u_virtualctl_F005;  // declared externally, unused here
   float F16 = u_virtualctl_F006;  // declared externally, unused here
-  float F17 = u_virtualctl_F007;  // declared externally, unused here
-  float F18 = u_virtualctl_F008;  // declared externally, unused here
-  float F19 = u_virtualctl_F009;  // particle density / threshold control
+  float F17 = u_virtualctl_F007;  // particle size
+  float F18 = u_virtualctl_F008;  // particle density / threshold control
+  float F19 = u_virtualctl_F009;  
   float F21 = u_virtualctl_F010;  // declared externally, unused here
 
   float Ox = u_virtualctl_O001;
@@ -169,8 +169,8 @@ void main() {
   vec4 feedbackColor = texture(u_prev, uv - vec2(displacementX, displacementY));
 
   // Current grid cell in the virtual 100x100 lattice
-  vec2 cellCoord = floor(NB_CELLULES_MAX * F21 * uv);
-  float cellStep = 1.0 / (NB_CELLULES_MAX * F21);
+  vec2 cellCoord = floor(NB_CELLULES_MAX * F17 * uv);
+  float cellStep = 1.0 / (NB_CELLULES_MAX * F17);
 
   // Global saturation probe from 16 fixed positions
   float saturation = computeGlobalSaturationProbe(u_prev);
@@ -186,7 +186,7 @@ void main() {
   vec4 prevE  = texture(u_prev, uv + vec2( cellStep, 0.0));
 
   // Random cell ignition
-  float particleSpawn = computeParticleSpawn(cellCoord, u_time, F19);
+  float particleSpawn = computeParticleSpawn(cellCoord, u_time, F18);
 
   // Cross neighbor blends used as a noisy diffusion contribution
   vec4 blendEN = mix(prevE, prevN, 0.5);
