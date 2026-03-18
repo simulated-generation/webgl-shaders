@@ -62,8 +62,8 @@ void main() {
   float F12 = u_virtualctl_F002;
   float F13 = u_virtualctl_F003;
   float F14 = u_virtualctl_F004;  //Remanence
-  float F15 = u_virtualctl_O001;  //Displacement x
-  float F16 = u_virtualctl_O002;  //Displacement y
+  float F15 = u_virtualctl_F005 + u_virtualctl_O001;  //Displacement x
+  float F16 = u_virtualctl_F006 + u_virtualctl_O002;  //Displacement y
   float F17 = u_virtualctl_F007;  //Not set / set BPM
   float F18 = u_virtualctl_F008;  //Not set / set particle size
   float F19 = u_virtualctl_F009;  //Number of particles
