@@ -38,6 +38,13 @@ async function boot() {
   const deviceOrientation = createDeviceOrientationController({
     button: document.getElementById("btnOrient"),
     sendValue: (path, value) => sendMessage(path, value),
+    pathX: "/virtualctl/O001",
+    pathY: "/virtualctl/O002",
+    pathZ: "/virtualctl/O003",
+    xRangeDeg: 45,
+    yRangeDeg: 45,
+    zRangeDeg: 90,
+    frequency: 30,
   });
 
   const overlay = createImageOverlayController({
@@ -73,9 +80,6 @@ async function boot() {
     root: document,
     sendValue: (path, value) => sendMessage(path, value),
   });
-
-  const btnVid = document.getElementById("btnVid");
-  let recording = false;
 
   const videoButton = createVideoButtonController({
     button: document.getElementById("btnVid"),
