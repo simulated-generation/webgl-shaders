@@ -9,6 +9,7 @@ import { createShotButtonController } from "./ui/shot-button.js";
 import { createVideoButtonController } from "./ui/video-button.js";
 import { createImageOverlayController } from "./ui/image-overlay.js";
 import { createVideoOverlayController } from "./ui/video-overlay.js";
+import { createWakeLockController } from "./ui/wake-lock.js";
 import { createInfoOverlayController } from "./ui/info-overlay.js";
 import { createOrientationController } from "./ui/orientation.js";
 import { createButtonPulseController } from "./ui/button-pulse.js";
@@ -86,6 +87,8 @@ async function boot() {
     sendVideoRequest: () => sendMessage("/virtualctl/video", 1),
   });
 
+  const wakeLock = createWakeLockController();
+
   onBrokerMessage((message) => {
     handleBrokerMessage(message, {
       syncEnabled: () => sync.isEnabled(),
@@ -112,6 +115,8 @@ async function boot() {
   overlay.init();
   videoOverlay.init();
   infoOverlay.init();
+  wakeLock.init();
+
 
   connectToBroker(getRoomId());
 }
