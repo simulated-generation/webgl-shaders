@@ -82,8 +82,9 @@ function getQuaternionFromSensor(sensor) {
 export function createDeviceOrientationController({
   button,
   sendValue,
-  pathY = "/virtualctl/O001",
-  pathZ = "/virtualctl/O002",
+  pathX = "/virtualctl/O001",
+  pathY = "/virtualctl/O002",
+  pathZ = "/virtualctl/O003",
   frequency = 30,
   yRangeDeg = 45,
   zRangeDeg = 90,
