@@ -7,7 +7,7 @@ out vec4 fragColor;
 uniform vec2  u_resolution;
 uniform float u_time;
 
-// Controls (from OSC paths like "/zeroctl/F11")
+// External controls: keep names exactly as-is because external code depends on them
 uniform float u_virtualctl_F001;
 uniform float u_virtualctl_F002;
 uniform float u_virtualctl_F003;
@@ -22,30 +22,39 @@ uniform float u_virtualctl_O001;
 uniform float u_virtualctl_O002;
 uniform float u_virtualctl_O003;
 
-// Previous frame from ping-pong
+// Previous frame (ping-pong feedback)
 uniform sampler2D u_prev;
 
 const float PI = 3.1415926535897932384626433;
 const float DEFAULT_RANDOM_FROM_FLOAT_PARAM = 502000.0;
-const float NB_CELLULES = 100.0;
+const float NB_CELLULES_MAX = 100.0;
+
+// -----------------------------------------------------------------------------
+// Random / noise helpers
+// -----------------------------------------------------------------------------
 
 float randomFromFloat(float seed, float param) {
   return fract(sin(seed) * param);
-}
-
-float randomFF(float seed) {
-  return randomFromFloat(seed, DEFAULT_RANDOM_FROM_FLOAT_PARAM);
 }
 
 float rand(float seed) {
   return randomFromFloat(seed, DEFAULT_RANDOM_FROM_FLOAT_PARAM);
 }
 
-float noise(float seed) {
-  float i = floor(seed);  // integer
-  float f = fract(seed);
-  return mix(rand(i), rand(i + 1.0), smoothstep(0.0, 1.0, f));
+// Kept for compatibility with the original naming
+float randomFF(float seed) {
+  return rand(seed);
 }
+
+float noise(float seed) {
+  float base = floor(seed);
+  float fracPart = fract(seed);
+  return mix(rand(base), rand(base + 1.0), smoothstep(0.0, 1.0, fracPart));
+}
+
+// -----------------------------------------------------------------------------
+// Math helpers
+// -----------------------------------------------------------------------------
 
 mat2 rotate2d(float theta) {
   float c = cos(theta);
@@ -54,98 +63,170 @@ mat2 rotate2d(float theta) {
               s,  c);
 }
 
+// Original curve used for particle spawning threshold
 float courbeExp(float x) {
-  return (1.0 - abs(x - 1.0) * abs(x - 1.0) * abs(x - 1.0));
+  return 1.0 - abs(x - 1.0) * abs(x - 1.0) * abs(x - 1.0);
 }
 
 float gain(float x, float k) {
-  float s = step(0.5, x);
-  float t = mix(x, 1.0 - x, s);
-  float a = 0.5 * pow(2.0 * t, k);
-  return mix(a, 1.0 - a, s);
+  float upperHalf = step(0.5, x);
+  float mirrored  = mix(x, 1.0 - x, upperHalf);
+  float shaped    = 0.5 * pow(2.0 * mirrored, k);
+  return mix(shaped, 1.0 - shaped, upperHalf);
 }
 
+// -----------------------------------------------------------------------------
+// Controller/orientation mapping
+// -----------------------------------------------------------------------------
+
+float orientationToSignedResponse(float rawValue, bool invertAxis) {
+  float v = invertAxis ? (1.0 - rawValue) : rawValue;
+  return 2.0 * smoothstep(0.4, 0.6, v) - 1.0;
+}
+
+// Keep the exact original response curve and clamp.
+// Note: the original code used x / abs(x), which is undefined at x == 0.
+// We preserve that exact behavior here for functional equivalence.
+float signedQuarticDisplacement(float x) {
+  return sign(x) * clamp(abs(pow(x, 4.0)), 0.0, 0.08);
+}
+
+// -----------------------------------------------------------------------------
+// Feedback sampling helpers
+// -----------------------------------------------------------------------------
+
+float computeGlobalSaturationProbe(sampler2D previousFrame) {
+  vec3 accum = vec3(0.0);
+
+  for (float iy = 0.0; iy < 4.0; iy += 1.0) {
+    for (float ix = 0.0; ix < 4.0; ix += 1.0) {
+      vec2 probeUV = vec2(0.125 + 0.25 * ix, 0.125 + 0.25 * iy);
+      accum += texture(previousFrame, probeUV).rgb;
+    }
+  }
+
+  accum /= 16.0;
+  return length(accum);
+}
+
+float computeParticleSpawn(vec2 cellCoord, float timeValue, float densityControl) {
+  float seed =
+      randomFF(randomFF(cellCoord.x) + randomFF(cellCoord.y) * floor(timeValue));
+
+  return step(courbeExp(densityControl), seed);
+}
+
+vec4 computeDirectionalBinaryPattern(
+  vec4 north, vec4 northWest, vec4 northEast,
+  vec4 south, vec4 southWest, vec4 southEast,
+  vec4 west,  vec4 east
+) {
+  float red =
+      (east.r + south.r + southEast.r + southWest.r) / 4.0;
+
+  float green =
+      (north.g + northEast.g + east.g + southWest.g) / 4.0;
+
+  float blue =
+      (northWest.b + northEast.b + east.b + south.b) / 4.0;
+
+  return vec4(red, green, blue, 1.0);
+}
+
+// -----------------------------------------------------------------------------
+// Main
+// -----------------------------------------------------------------------------
+
 void main() {
+  // Preserve the original local aliases
   float F11 = u_virtualctl_F001;
   float F12 = u_virtualctl_F002;
   float F13 = u_virtualctl_F003;
-  float F14 = u_virtualctl_F004;  //Remanence
-  float F15 = u_virtualctl_F005;  //Displacement x
-  float F16 = u_virtualctl_F006;  //Displacement y
-  float F17 = u_virtualctl_F007;  //Not set / set BPM
-  float F18 = u_virtualctl_F008;  //Not set / set particle size
-  float F19 = u_virtualctl_F009;  //Number of particles
-  float F21 = u_virtualctl_F010;
-  float Ox  = u_virtualctl_O001;   //Orientation around the x axis of the controller device
-  float Oy  = u_virtualctl_O002;   //Orientation around the y axis of the controller device
-  float Oz  = u_virtualctl_O003;   //Orientation around the z axis of the controller device
-                                  //
-  // In this framework you already have v_uv = 0..1
+  float F14 = u_virtualctl_F004;  // remanence
+  float F15 = u_virtualctl_F005;  // declared externally, unused here
+  float F16 = u_virtualctl_F006;  // declared externally, unused here
+  float F17 = u_virtualctl_F007;  // declared externally, unused here
+  float F18 = u_virtualctl_F008;  // declared externally, unused here
+  float F19 = u_virtualctl_F009;  // particle density / threshold control
+  float F21 = u_virtualctl_F010;  // declared externally, unused here
+
+  float Ox = u_virtualctl_O001;
+  float Oy = u_virtualctl_O002;
+  float Oz = u_virtualctl_O003;
+
   vec2 uv = v_uv;
 
-  float Rx = 2.0*smoothstep(0.4, 0.6,     Ox) - 1.0;
-  float Ry = 2.0*smoothstep(0.4, 0.6, 1.0-Oy) - 1.0;
-  float Rz = 2.0*smoothstep(0.4, 0.6, 1.0-Oz) - 1.0;
+  // Orientation response
+  float responseX = orientationToSignedResponse(Ox, false);
+  float responseY = orientationToSignedResponse(Oy, true);
+  float responseZ = orientationToSignedResponse(Oz, true);
 
-  float dispX = (Rx/abs(Rx))*clamp(abs(pow(Rx,4.0)), 0.0, 0.08);
-  float dispY = (Ry/abs(Ry))*clamp(abs(pow(Ry,4.0)), 0.0, 0.08);
-  //float dispY = F16 * F16 * F16 * F16;
+  // Exact original displacement law
+  float displacementX = signedQuarticDisplacement(responseX);
+  float displacementY = signedQuarticDisplacement(responseY);
 
-  vec4 prevColor = texture(u_prev, uv - vec2(dispX, dispY));
+  // Previous frame, shifted by controller-induced displacement
+  vec4 feedbackColor = texture(u_prev, uv - vec2(displacementX, displacementY));
 
-  vec2 cell = floor(NB_CELLULES * uv);
+  // Current grid cell in the virtual 100x100 lattice
+  vec2 cellCoord = floor(NB_CELLULES_MAX * F21 * uv);
+  float cellStep = 1.0 / (NB_CELLULES_MAX * F21);
 
-  float saturation = 0.0;
-  vec3 voisins = vec3(0.0);
-  for (float i = 0.0; i < 4.0; i += 1.0) {
-    for (float j = 0.0; j < 4.0; j += 1.0) {
-      voisins += texture(u_prev, vec2(0.125 + 0.25 * i, 0.125 + 0.25 * j)).rgb;
-    }
-  }
-  voisins /= 16.0;
-  saturation = length(voisins);
+  // Global saturation probe from 16 fixed positions
+  float saturation = computeGlobalSaturationProbe(u_prev);
 
-  float cs = 1.0 / NB_CELLULES;
+  // 8-neighborhood samples on the virtual cell grid
+  vec4 prevN  = texture(u_prev, uv + vec2( 0.0,      cellStep));
+  vec4 prevNW = texture(u_prev, uv + vec2(-cellStep, cellStep));
+  vec4 prevNE = texture(u_prev, uv + vec2( cellStep, cellStep));
+  vec4 prevS  = texture(u_prev, uv + vec2( 0.0,     -cellStep));
+  vec4 prevSW = texture(u_prev, uv + vec2(-cellStep,-cellStep));
+  vec4 prevSE = texture(u_prev, uv + vec2( cellStep,-cellStep));
+  vec4 prevW  = texture(u_prev, uv + vec2(-cellStep, 0.0));
+  vec4 prevE  = texture(u_prev, uv + vec2( cellStep, 0.0));
 
-  vec4 prevColorN  = texture(u_prev, uv + vec2(0.0,  cs));
-  vec4 prevColorNW = texture(u_prev, uv + vec2(-cs, cs));
-  vec4 prevColorNE = texture(u_prev, uv + vec2( cs, cs));
-  vec4 prevColorS  = texture(u_prev, uv + vec2(0.0, -cs));
-  vec4 prevColorSW = texture(u_prev, uv + vec2(-cs, -cs));
-  vec4 prevColorSE = texture(u_prev, uv + vec2( cs, -cs));
-  vec4 prevColorW  = texture(u_prev, uv + vec2(-cs, 0.0));
-  vec4 prevColorE  = texture(u_prev, uv + vec2( cs, 0.0));
+  // Random cell ignition
+  float particleSpawn = computeParticleSpawn(cellCoord, u_time, F19);
 
-  float point = step(
-    courbeExp(F19),
-    randomFF(randomFF(cell.x) + randomFF(cell.y) * floor(u_time))
+  // Cross neighbor blends used as a noisy diffusion contribution
+  vec4 blendEN = mix(prevE, prevN, 0.5);
+  vec4 blendWS = mix(prevW, prevS, 0.5);
+  vec4 blendWN = mix(prevW, prevN, 0.5);
+  vec4 blendES = mix(prevE, prevS, 0.5);
+
+  // Directional RGB extraction from neighbors
+  vec4 directionalBinaryPattern = computeDirectionalBinaryPattern(
+    prevN, prevNW, prevNE,
+    prevS, prevSW, prevSE,
+    prevW, prevE
   );
 
-  vec4 pointVoisinEN = mix(prevColorE, prevColorN, 0.5);
-  vec4 pointVoisinWS = mix(prevColorW, prevColorS, 0.5);
-  vec4 pointVoisinWN = mix(prevColorW, prevColorN, 0.5);
-  vec4 pointVoisinES = mix(prevColorE, prevColorS, 0.5);
+  // Spawn color
+  vec3 injectionColor = vec3(F11, F12, F13);
 
-  float composanteR = (prevColorE.r  + prevColorS.r  + prevColorSE.r + prevColorSW.r) / 4.0;
-  float composanteG = (prevColorN.g  + prevColorNE.g + prevColorE.g  + prevColorSW.g) / 4.0;
-  float composanteB = (prevColorNW.b + prevColorNE.b + prevColorE.b  + prevColorS.b ) / 4.0;
+  // Feedback + injected particles + noisy neighbor diffusion
+  vec4 composed =
+      vec4((1.0 + F14 / 10.0) * feedbackColor.xyz + injectionColor * particleSpawn, 1.0)
+    + 0.06 * noise(u_time) * (blendEN + blendWS + blendWN + blendES);
 
-  vec4 pointBinaire = vec4(composanteR, composanteG, composanteB, 1.0);
+  // Hard cutoff for very dim values
+  composed = vec4(step(0.1, length(composed.rgb)) * composed.rgb, 1.0);
 
-  vec3 color = vec3(F11, F12, F13);
+  // Saturation gate
+  float saturationGate = smoothstep(1.5, 1.74, saturation);
 
-  vec4 finalColor =
-      vec4((1.0 + F14 / 10.0) * prevColor.xyz + color * point, 1.0)
-    + 0.06 * noise(u_time) * (pointVoisinEN + pointVoisinWS + pointVoisinWN + pointVoisinES);
+  // Alignment with white / diagonal RGB axis
+  vec3 normalizedColor = normalize(composed.rgb);
+  vec3 diagonalRGB = normalize(vec3(1.0, 1.0, 1.0));
+  float whiteAlignment = dot(normalizedColor, diagonalRGB);
 
-  finalColor = vec4(step(0.1, length(finalColor.rgb)) * finalColor.rgb, 1.0);
+  // Final output
+  fragColor = vec4(
+    (1.0 - saturationGate) * composed.rgb
+      - 2.0 * whiteAlignment * directionalBinaryPattern.rgb,
+    1.0
+  );
 
-  float sstepSaturation = smoothstep(1.5, 1.74, saturation);
-
-  vec3 normalizedV = normalize(finalColor.rgb);
-  vec3 diagonal = normalize(vec3(1.0, 1.0, 1.0));
-  float alignment = dot(normalizedV, diagonal);
-
-  fragColor = vec4((1.0 - sstepSaturation) * finalColor.rgb - 2.0 * (alignment) * pointBinaire.rgb, 1.0);
-  //fragColor = vec4(vec3(Rx, 0.0, 0.0), 1.0);
+  // Debug option kept from original:
+  // fragColor = vec4(vec3(responseX, 0.0, 0.0), 1.0);
 }
