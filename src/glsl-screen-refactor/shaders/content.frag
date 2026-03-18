@@ -80,8 +80,9 @@ void main() {
   float Ry = smoothstep(0.4, 0.6, 1.0-Oy);
   float Rz = smoothstep(0.4, 0.6, 1.0-Oz);
 
-  float dispX = F15 * F15 * F15 * F15;
-  float dispY = F16 * F16 * F16 * F16;
+  float dispX = 2.0*Rx - 1.0;
+  float dispY = 2.0*Ry - 1.0;
+  //float dispY = F16 * F16 * F16 * F16;
 
   vec4 prevColor = texture(u_prev, uv - vec2(dispX, dispY));
 
@@ -138,6 +139,6 @@ void main() {
   vec3 diagonal = normalize(vec3(1.0, 1.0, 1.0));
   float alignment = dot(normalizedV, diagonal);
 
-  //fragColor = vec4((1.0 - sstepSaturation) * finalColor.rgb - 2.0 * (alignment) * pointBinaire.rgb, 1.0);
-  fragColor = vec4(vec3(Rx, 0.0, 0.0), 1.0);
+  fragColor = vec4((1.0 - sstepSaturation) * finalColor.rgb - 2.0 * (alignment) * pointBinaire.rgb, 1.0);
+  //fragColor = vec4(vec3(Rx, 0.0, 0.0), 1.0);
 }
