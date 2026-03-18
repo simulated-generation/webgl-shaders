@@ -63,18 +63,22 @@ void main() {
   float F12 = u_virtualctl_F002;
   float F13 = u_virtualctl_F003;
   float F14 = u_virtualctl_F004;  //Remanence
-  float F15 = u_virtualctl_O003;  //Displacement x
+  float F15 = u_virtualctl_F005;  //Displacement x
   float F16 = u_virtualctl_F006;  //Displacement y
   float F17 = u_virtualctl_F007;  //Not set / set BPM
   float F18 = u_virtualctl_F008;  //Not set / set particle size
   float F19 = u_virtualctl_F009;  //Number of particles
   float F21 = u_virtualctl_F010;
-  float Ox = u_virtualctl_O001;  //Displacement x
-  float Oy = u_virtualctl_O002;  //Displacement x
-  float Oz = u_virtualctl_O003;  //Displacement x
-
+  float Ox  = u_virtualctl_O001;   //Orientation around the x axis of the controller device
+  float Oy  = u_virtualctl_O002;   //Orientation around the y axis of the controller device
+  float Oz  = u_virtualctl_O003;   //Orientation around the z axis of the controller device
+                                  //
   // In this framework you already have v_uv = 0..1
   vec2 uv = v_uv;
+
+  float Rx = smoothstep(0.4, 0.6, Ox);
+  float Ry = smoothstep(0.4, 0.6, 1.0-Oy);
+  float Rz = smoothstep(0.4, 0.6, Oz);
 
   float dispX = F15 * F15 * F15 * F15;
   float dispY = F16 * F16 * F16 * F16;
@@ -135,5 +139,5 @@ void main() {
   float alignment = dot(normalizedV, diagonal);
 
   //fragColor = vec4((1.0 - sstepSaturation) * finalColor.rgb - 2.0 * (alignment) * pointBinaire.rgb, 1.0);
-  fragColor = vec4(vec3(Ox, Oy, Oz), 1.0);
+  fragColor = vec4(vec3(0.0, 0.0, Rz), 1.0);
 }
