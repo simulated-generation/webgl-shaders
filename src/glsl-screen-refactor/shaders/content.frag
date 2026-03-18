@@ -78,7 +78,7 @@ void main() {
 
   float Rx = smoothstep(0.4, 0.6, Ox);
   float Ry = smoothstep(0.4, 0.6, 1.0-Oy);
-  float Rz = smoothstep(0.4, 0.6, Oz);
+  float Rz = smoothstep(0.4, 0.6, 1.0-Oz);
 
   float dispX = F15 * F15 * F15 * F15;
   float dispY = F16 * F16 * F16 * F16;
@@ -139,5 +139,5 @@ void main() {
   float alignment = dot(normalizedV, diagonal);
 
   //fragColor = vec4((1.0 - sstepSaturation) * finalColor.rgb - 2.0 * (alignment) * pointBinaire.rgb, 1.0);
-  fragColor = vec4(vec3(0.0, 0.0, Rz), 1.0);
+  fragColor = vec4(vec3(Rx, 0.0, 0.0), 1.0);
 }
