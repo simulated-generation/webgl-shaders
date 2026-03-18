@@ -58,6 +58,13 @@ float courbeExp(float x) {
   return (1.0 - abs(x - 1.0) * abs(x - 1.0) * abs(x - 1.0));
 }
 
+float gain(float x, float k) {
+  float s = step(0.5, x);
+  float t = mix(x, 1.0 - x, s);
+  float a = 0.5 * pow(2.0 * t, k);
+  return mix(a, 1.0 - a, s);
+}
+
 void main() {
   float F11 = u_virtualctl_F001;
   float F12 = u_virtualctl_F002;
@@ -76,12 +83,12 @@ void main() {
   // In this framework you already have v_uv = 0..1
   vec2 uv = v_uv;
 
-  float Rx = smoothstep(0.4, 0.6, Ox);
-  float Ry = smoothstep(0.4, 0.6, 1.0-Oy);
-  float Rz = smoothstep(0.4, 0.6, 1.0-Oz);
+  float Rx = 2.0*smoothstep(0.4, 0.6,     Ox) - 1.0;
+  float Ry = 2.0*smoothstep(0.4, 0.6, 1.0-Oy) - 1.0;
+  float Rz = 2.0*smoothstep(0.4, 0.6, 1.0-Oz) - 1.0;
 
-  float dispX = 2.0*Rx - 1.0;
-  float dispY = 2.0*Ry - 1.0;
+  float dispX = (Rx/abs(Rx))*clamp(abs(pow(Rx,4.0)), 0.0, 0.08);
+  float dispY = (Ry/abs(Ry))*clamp(abs(pow(Ry,4.0)), 0.0, 0.08);
   //float dispY = F16 * F16 * F16 * F16;
 
   vec4 prevColor = texture(u_prev, uv - vec2(dispX, dispY));
