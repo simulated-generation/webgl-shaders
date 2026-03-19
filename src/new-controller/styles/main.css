@@ -19,6 +19,81 @@
   --icon-pulse-scale: 1.6;
 }
 
+:root{
+  --app-h: 100vh;
+
+  /* Scale from both axes, not only width */
+  --u-from-w: calc(100vw / 12);
+  --u-from-h: calc(var(--app-h) / 17);
+  --u: min(var(--u-from-w), var(--u-from-h));
+
+  --line: 1px;
+  --track-h: var(--line);
+  --thumb: calc(var(--u) * 1.25);
+  --content-w: calc(var(--u) * 10);
+  --pad: calc(var(--u) * 0.3);
+  --controls-h: calc(var(--u) * 3);
+  --row-h: calc(var(--u) * 1);
+  --row-gap: calc(var(--u) * 0.65);
+
+  --bg: #fff;
+  --fg: #000;
+  --thumb-outer: #fff;
+  --thumb-ring: #000;
+  --thumb-center: #fff;
+  --device-rotation: 0deg;
+  --overlay-rotation: 0deg;
+  --icon-pulse-scale: 1.6;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: var(--app-h);
+  min-height: var(--app-h);
+  overflow: hidden;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  overscroll-behavior: none;
+  transition:
+    background 120ms linear,
+    color 120ms linear;
+}
+
+.app {
+  min-height: var(--app-h);
+  padding: var(--pad);
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+}
+
+@supports (height: 100svh) {
+  :root {
+    --app-h: 100svh;
+  }
+}
+
+@supports (height: 100dvh) {
+  :root {
+    --app-h: 100dvh;
+  }
+}
+
+@media (min-width: 800px) {
+  :root {
+    --u: min(var(--u-from-w), var(--u-from-h), 56px);
+  }
+}
+
 * {
   box-sizing: border-box;
 }

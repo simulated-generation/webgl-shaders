@@ -157,6 +157,7 @@ void main() {
   vec2 uv = v_uv;
 
   float zoom = pow(F17, 2.0);
+  float zoomMode2 = pow(4.0, F17);
 
   // Orientation response
   float responseX = orientationToSignedResponse(Ox, false);
@@ -164,8 +165,8 @@ void main() {
   float responseZ = orientationToSignedResponse(Oz, true);
 
   // Exact original displacement law
-  float displacementX = signedQuarticDisplacement(responseX)*(1.0+F15);
-  float displacementY = signedQuarticDisplacement(responseY)*(1.0+F16);
+  float displacementX = signedQuarticDisplacement(responseX)*(1.0+(4.0*F15));
+  float displacementY = signedQuarticDisplacement(responseY)*(1.0+(4.0*F16));
 
   // Previous frame, shifted by controller-induced displacement
   vec2 texturePos = vec2(mod(uv.x - displacementX, 1.0), mod(uv.y - displacementY, 1.0));
