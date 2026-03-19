@@ -196,7 +196,7 @@ export function createDeviceOrientationController({
     source = null;
     baselineQuat = null;
     setButtonState(false);
-    sendNeutral();
+    //sendNeutral();
 
     console.log("[orientation] stopped");
   }

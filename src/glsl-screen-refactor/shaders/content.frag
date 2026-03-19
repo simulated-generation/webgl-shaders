@@ -147,7 +147,7 @@ void main() {
   float F16 = u_virtualctl_F006;  // declared externally, unused here
   float F17 = u_virtualctl_F007;  // particle size
   float F18 = u_virtualctl_F008;  // particle density / threshold control
-  float F19 = u_virtualctl_F009;  
+  float F19 = u_virtualctl_F009;
   float F21 = u_virtualctl_F010;  // declared externally, unused here
 
   float Ox = u_virtualctl_O001;
@@ -156,21 +156,24 @@ void main() {
 
   vec2 uv = v_uv;
 
+  float zoom = pow(F17, 2.0);
+
   // Orientation response
   float responseX = orientationToSignedResponse(Ox, false);
   float responseY = orientationToSignedResponse(Oy, true);
   float responseZ = orientationToSignedResponse(Oz, true);
 
   // Exact original displacement law
-  float displacementX = signedQuarticDisplacement(responseX);
-  float displacementY = signedQuarticDisplacement(responseY);
+  float displacementX = signedQuarticDisplacement(responseX)*(1.0+F15);
+  float displacementY = signedQuarticDisplacement(responseY)*(1.0+F16);
 
   // Previous frame, shifted by controller-induced displacement
-  vec4 feedbackColor = texture(u_prev, uv - vec2(displacementX, displacementY));
+  vec2 texturePos = vec2(mod(uv.x - displacementX, 1.0), mod(uv.y - displacementY, 1.0));
+  vec4 feedbackColor = texture(u_prev, texturePos);
 
   // Current grid cell in the virtual 100x100 lattice
-  vec2 cellCoord = floor(NB_CELLULES_MAX * F17 * uv);
-  float cellStep = 1.0 / (NB_CELLULES_MAX * F17);
+  vec2 cellCoord = floor(NB_CELLULES_MAX * zoom * uv);
+  float cellStep = 1.0 / (NB_CELLULES_MAX * zoom);
 
   // Global saturation probe from 16 fixed positions
   float saturation = computeGlobalSaturationProbe(u_prev);
@@ -206,7 +209,7 @@ void main() {
 
   // Feedback + injected particles + noisy neighbor diffusion
   vec4 composed =
-      vec4((1.0 + F14 / 10.0) * feedbackColor.xyz + injectionColor * particleSpawn, 1.0)
+      vec4(((0.99 + (F14 / 10.0))) * feedbackColor.xyz + injectionColor * particleSpawn, 1.0)
     + 0.06 * noise(u_time) * (blendEN + blendWS + blendWN + blendES);
 
   // Hard cutoff for very dim values
