@@ -173,7 +173,7 @@ void main() {
   vec4 feedbackColor = texture(u_prev, texturePos);
 
   // Current grid cell in the virtual 100x100 lattice
-  vec2 cellCoord = floor(NB_CELLULES_MAX * zoom * uv);
+  vec2 cellCoord = floor(NB_CELLULES_MAX * floor(50.0*zoom) * uv);
   float cellStep = 1.0 / (NB_CELLULES_MAX * zoom);
 
   // Global saturation probe from 16 fixed positions
