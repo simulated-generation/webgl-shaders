@@ -48,7 +48,21 @@ async function main() {
   const gl = canvas.getContext("webgl2", { antialias: true });
   if (!gl) throw new Error("WebGL2 required");
 
-  const id = new URLSearchParams(window.location.search).get("id") || "default";
+  const params = new URLSearchParams(window.location.search);
+
+  const id = params.get("id") || "default";
+  const shader_id = params.get("shader") || "content";
+
+  const SHADERS = {
+    content: "/shaders/content.frag",
+    rules: "/shaders/rules01.frag",
+    glitch: "/shaders/glitch.frag",
+    // add more here
+  };
+
+  const contentShader = SHADERS[shader_id] || SHADERS["content"];
+
+
   // non-fatal if broker absent
   const broker = connectBroker({ id, log: true });
 
@@ -62,7 +76,7 @@ async function main() {
 
   const [contentVS, contentFS, sceneVS, sceneFS] = await Promise.all([
     loadText("/shaders/content.vert"),
-    loadText("/shaders/content.frag"),
+    loadText(contentShader),
     loadText("/shaders/scene.vert"),
     loadText("/shaders/scene.frag"),
   ]);
